@@ -23,4 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/units/{unit}', [UnitController::class, 'destroy']);
 //    products
     Route::apiResource('products', \App\Http\Controllers\ProductController::class);
+//    supliers
+    Route::post('/supliers/bulk-delete', [\App\Http\Controllers\SuplierController::class, 'bulkDelete']);
+    Route::apiResource('supliers', \App\Http\Controllers\SuplierController::class);
 });
