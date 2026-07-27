@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AuthControllerTest extends TestCase
@@ -86,6 +88,64 @@ class AuthControllerTest extends TestCase
     public function test_logout_unauthenticated(): void
     {
         $response = $this->postJson('/api/logout');
+
+        $response->assertUnauthorized();
+    }
+
+    public function test_update_profile_success(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create([
+            'name' => 'Old Name'
+        ]);
+        $token = $user->createToken('Token_Web')->plainTextToken;
+
+        $file = UploadedFile::fake()->image('profile.jpg');
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->post('/api/user', [
+                'name' => 'New Name',
+                'foto_profile' => $file,
+            ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'message' => 'Profile updated successfully.',
+            ])
+            ->assertJsonPath('data.name', 'New Name');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'name' => 'New Name',
+        ]);
+
+        $user->refresh();
+        $this->assertNotNull($user->foto_profile);
+        Storage::disk('public')->assertExists($user->foto_profile);
+    }
+
+    public function test_update_profile_validation_fails(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('Token_Web')->plainTextToken;
+
+        $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/user', [
+                'foto_profile' => $file,
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['foto_profile']);
+    }
+
+    public function test_update_profile_unauthenticated(): void
+    {
+        $response = $this->postJson('/api/user', [
+            'name' => 'New Name',
+        ]);
 
         $response->assertUnauthorized();
     }
