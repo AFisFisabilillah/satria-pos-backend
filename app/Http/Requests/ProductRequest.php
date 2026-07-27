@@ -16,6 +16,8 @@ class ProductRequest extends FormRequest
             'active' => ['boolean'],
             'unit_id' => ['required', 'exists:units,id'],
             'sale_price' => ['required', 'integer','min:0'],
+            'category_ids' => ['required', 'array'],
+            'category_ids.*' => ['exists:categories,id'],
         ];
     }
 

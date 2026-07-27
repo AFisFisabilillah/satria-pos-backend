@@ -16,6 +16,11 @@ class Product extends Model{
         return $this->belongsTo(Unit::class);
     }
 
+    public function categories(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Category::class);
+    }
+
     protected function casts(): array
     {
         return [

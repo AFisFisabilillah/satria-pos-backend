@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Unit;
 use App\Models\User;
@@ -31,16 +32,18 @@ class ProductControllerTest extends TestCase
 
     public function test_index_returns_paginated_products(): void
     {
-        Product::factory()->count(15)->create(['unit_id' => $this->unit->id]);
+        $category = Category::factory()->create();
+        $product = Product::factory()->create(['unit_id' => $this->unit->id]);
+        $product->categories()->attach($category);
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->getJson('/api/products?size=10');
 
         $response->assertOk()
-            ->assertJsonCount(10, 'data') // Karena paginate(10)
+            ->assertJsonCount(1, 'data') // Karena paginate(10)
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'name', 'code', 'slug', 'description', 'image', 'active', 'sale_price', 'unit_id']
+                    '*' => ['id', 'name', 'code', 'slug', 'description', 'image', 'active', 'sale_price', 'unit_id', 'categories']
                 ],
                 'links',
                 'meta'
@@ -64,6 +67,8 @@ class ProductControllerTest extends TestCase
     public function test_store_creates_new_product_with_image(): void
     {
         $file = UploadedFile::fake()->image('product.jpg');
+        $category1 = Category::factory()->create();
+        $category2 = Category::factory()->create();
 
         $payload = [
             'name' => 'Kopi Bubuk',
@@ -73,6 +78,7 @@ class ProductControllerTest extends TestCase
             'unit_id' => $this->unit->id,
             'sale_price' => 15000,
             'image' => $file,
+            'category_ids' => [$category1->id, $category2->id],
         ];
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
@@ -85,6 +91,16 @@ class ProductControllerTest extends TestCase
         $this->assertNotNull($product);
         $this->assertEquals('kopi-bubuk', $product->slug);
 
+        // Assert categories attached
+        $this->assertDatabaseHas('category_product', [
+            'product_id' => $product->id,
+            'category_id' => $category1->id,
+        ]);
+        $this->assertDatabaseHas('category_product', [
+            'product_id' => $product->id,
+            'category_id' => $category2->id,
+        ]);
+
         // Assert file exists di disk public
         Storage::disk('public')->assertExists($product->image);
     }
@@ -95,7 +111,7 @@ class ProductControllerTest extends TestCase
             ->postJson('/api/products', []);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['name', 'code', 'image', 'unit_id', 'sale_price']);
+            ->assertJsonValidationErrors(['name', 'code', 'image', 'unit_id', 'sale_price', 'category_ids']);
     }
 
     public function test_store_validation_fails_with_invalid_image(): void
@@ -129,6 +145,9 @@ class ProductControllerTest extends TestCase
     public function test_update_product_without_image(): void
     {
         $product = Product::factory()->create(['unit_id' => $this->unit->id, 'image' => 'images/old.jpg']);
+        $oldCategory = Category::factory()->create();
+        $newCategory = Category::factory()->create();
+        $product->categories()->attach($oldCategory);
 
         $payload = [
             'name' => 'Update Kopi',
@@ -137,6 +156,7 @@ class ProductControllerTest extends TestCase
             'active' => 0,
             'unit_id' => $this->unit->id,
             'sale_price' => 20000,
+            'category_ids' => [$newCategory->id],
             '_method' => 'PUT',
         ];
 
@@ -148,6 +168,16 @@ class ProductControllerTest extends TestCase
 
         $product->refresh();
         $this->assertEquals('images/old.jpg', $product->image); // Image tidak berubah
+
+        // Assert old category removed and new attached
+        $this->assertDatabaseMissing('category_product', [
+            'product_id' => $product->id,
+            'category_id' => $oldCategory->id,
+        ]);
+        $this->assertDatabaseHas('category_product', [
+            'product_id' => $product->id,
+            'category_id' => $newCategory->id,
+        ]);
     }
 
     public function test_update_product_with_new_image_deletes_old_image(): void
@@ -157,6 +187,7 @@ class ProductControllerTest extends TestCase
         $oldPath = $oldFile->storeAs('images/products', 'old.jpg', 'public');
 
         $product = Product::factory()->create(['unit_id' => $this->unit->id, 'image' => $oldPath]);
+        $category = Category::factory()->create();
 
         Storage::disk('public')->assertExists($oldPath);
 
@@ -168,6 +199,7 @@ class ProductControllerTest extends TestCase
             'unit_id' => $this->unit->id,
             'sale_price' => 50000,
             'image' => $newFile,
+            'category_ids' => [$category->id],
             '_method' => 'PUT',
         ];
 
