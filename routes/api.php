@@ -12,6 +12,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
+//    category
+    Route::get('/categories', [\App\Http\Controllers\CategoryController::class, 'index']);
+    Route::post('/categories', [\App\Http\Controllers\CategoryController::class, 'store']);
+    Route::delete('/categories/{category}', [\App\Http\Controllers\CategoryController::class, 'destroy']);
+
 //    unit
     Route::get('/units', [UnitController::class, 'index']);
     Route::post('/units', [UnitController::class, 'store']);
