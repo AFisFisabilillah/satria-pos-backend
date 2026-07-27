@@ -21,4 +21,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/units', [UnitController::class, 'index']);
     Route::post('/units', [UnitController::class, 'store']);
     Route::delete('/units/{unit}', [UnitController::class, 'destroy']);
+//    products
+    Route::apiResource('products', \App\Http\Controllers\ProductController::class);
 });

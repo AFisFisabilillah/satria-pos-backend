@@ -1,0 +1,89 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\ProductRequest;
+use App\Http\Requests\UpdateProductRequest;
+use App\Http\Resources\ProductResource;
+use App\Models\Product;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
+
+class ProductController extends Controller
+{
+    public function index()
+    {
+        $search = request()->query('search');
+        $size = request()->query('size', 10);
+
+        $productQuery = Product::query()->with("unit");
+        $productQuery->when($search, function ($query, $search) {
+            return $query->where('name', 'like', '%' . $search . '%');
+        });
+
+        $products = $productQuery->paginate($size);
+        return ProductResource::collection($products);
+    }
+
+    public function store(ProductRequest $request)
+    {
+        $data = $request->validated();
+        $image = $request->file('image');
+        $path = null;
+        if ($image) {
+            $fileName = $request->code . "-" . Str::uuid() . "." . $image->getClientOriginalExtension();
+            $path = $image->storeAs('images/products', $fileName, 'public');
+        }
+        $slug = Str::slug($request->name, '-');
+        $product = Product::create([
+            "name" => $request->name,
+            "code" => $request->code,
+            "slug" => $slug,
+            "description" => $request->description,
+            "image" => $path,
+            "active" => $request->active,
+            "unit_id" => $request->unit_id,
+            "sale_price" => $request->sale_price,
+        ]);
+
+        return new ProductResource($product);
+    }
+
+    public function show(Product $product)
+    {
+        return new ProductResource($product);
+    }
+
+
+    public function update(UpdateProductRequest $request, Product $product)
+    {
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
+
+            $image = $request->file('image');
+
+            $fileName = Str::uuid() . '.' . $image->getClientOriginalExtension();
+
+            $image->storeAs('images/products', $fileName, 'public');
+
+            $data['image'] = 'images/products/' . $fileName;
+        }
+
+        $product->update($data);
+
+        return new ProductResource($product->refresh());
+    }
+
+    public function destroy(Product $product)
+    {
+        $product->delete();
+
+        return response()->json();
+    }
+}
