@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\StockSupplyController;
+use App\Http\Controllers\SuplierController;
 use App\Http\Controllers\UnitController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -13,17 +17,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
 //    category
-    Route::get('/categories', [\App\Http\Controllers\CategoryController::class, 'index']);
-    Route::post('/categories', [\App\Http\Controllers\CategoryController::class, 'store']);
-    Route::delete('/categories/{category}', [\App\Http\Controllers\CategoryController::class, 'destroy']);
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::post('/categories', [CategoryController::class, 'store']);
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
 
 //    unit
     Route::get('/units', [UnitController::class, 'index']);
     Route::post('/units', [UnitController::class, 'store']);
     Route::delete('/units/{unit}', [UnitController::class, 'destroy']);
 //    products
-    Route::apiResource('products', \App\Http\Controllers\ProductController::class);
+    Route::apiResource('products', ProductController::class);
 //    supliers
-    Route::post('/supliers/bulk-delete', [\App\Http\Controllers\SuplierController::class, 'bulkDelete']);
-    Route::apiResource('supliers', \App\Http\Controllers\SuplierController::class);
+    Route::post('/supliers/bulk-delete', [SuplierController::class, 'bulkDelete']);
+    Route::apiResource('supliers', SuplierController::class);
+
+//    Stock Supply
+    Route::get("/stock-supply", [StockSupplyController::class, 'index']);
+    Route::post("/stock-supply", [StockSupplyController::class, 'store']);
+
 });
