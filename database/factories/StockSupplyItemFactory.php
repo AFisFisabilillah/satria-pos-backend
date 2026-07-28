@@ -17,7 +17,7 @@ class StockSupplyItemFactory extends Factory
         return [
             'quantity_in' => $this->faker->randomNumber(),
             'quantity_remaining' => $this->faker->randomNumber(),
-            'purchase_price' => $this->faker->randomFloat(),
+            'purchase_price' => $this->faker->randomNumber(5),
             'expired_at' => Carbon::now(),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),

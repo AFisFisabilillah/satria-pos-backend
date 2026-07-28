@@ -19,12 +19,8 @@ class StockSupplyItemResource extends JsonResource
             'expired_at' => $this->expired_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-
-            'stock_supply_id' => $this->stock_supply_id,
             'product_id' => $this->product_id,
-
-            'stockSupply' => new StockSupplyResource($this->whenLoaded('stockSupply')),
-            'product' => new ProductResource($this->whenLoaded('product')),
+            'product' => $this->product->name,
         ];
     }
 }
