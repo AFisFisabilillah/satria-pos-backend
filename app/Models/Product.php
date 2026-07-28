@@ -21,6 +21,11 @@ class Product extends Model{
         return $this->belongsToMany(Category::class);
     }
 
+    public function stockSupplyItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(StockSupplyItem::class);
+    }
+
     protected function casts(): array
     {
         return [

@@ -43,7 +43,7 @@ class ProductControllerTest extends TestCase
             ->assertJsonCount(1, 'data') // Karena paginate(10)
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'name', 'code', 'slug', 'description', 'image', 'active', 'sale_price', 'unit_id', 'categories']
+                    '*' => ['id', 'name', 'code', 'slug', 'description', 'image', 'active', 'sale_price', 'unit_id', 'quantity', 'categories']
                 ],
                 'links',
                 'meta'

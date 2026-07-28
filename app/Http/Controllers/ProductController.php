@@ -17,7 +17,7 @@ class ProductController extends Controller
         $search = request()->query('search');
         $size = request()->query('size', 10);
 
-        $productQuery = Product::query()->with(["unit", "categories"]);
+        $productQuery = Product::query()->with(["unit", "categories"])->withSum('stockSupplyItems', 'quantity_remaining');
         $productQuery->when($search, function ($query, $search) {
             return $query->where('name', 'like', '%' . $search . '%');
         });
@@ -49,14 +49,14 @@ class ProductController extends Controller
 
         $product->categories()->attach($request->category_ids);
 
-        $product->load(['unit', 'categories']);
+        $product->load(['unit', 'categories'])->loadSum('stockSupplyItems', 'quantity_remaining');
 
         return new ProductResource($product);
     }
 
     public function show(Product $product)
     {
-        $product->load(['unit', 'categories']);
+        $product->load(['unit', 'categories'])->loadSum('stockSupplyItems', 'quantity_remaining');
         return new ProductResource($product);
     }
 
@@ -84,7 +84,7 @@ class ProductController extends Controller
 
         $product->categories()->sync($request->category_ids);
 
-        $product->load(['unit', 'categories']);
+        $product->load(['unit', 'categories'])->loadSum('stockSupplyItems', 'quantity_remaining');
 
         return new ProductResource($product);
     }
