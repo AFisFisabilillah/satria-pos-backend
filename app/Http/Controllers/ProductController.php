@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Http\Resources\DetailProductResource;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
@@ -56,8 +57,8 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        $product->load(['unit', 'categories'])->loadSum('stockSupplyItems', 'quantity_remaining');
-        return new ProductResource($product);
+        $product->load(['unit', 'categories', 'stockSupplyItems', 'stockSupplyItems.stockSupply', 'stockSupplyItems.stockSupply.suplier'])->loadSum('stockSupplyItems', 'quantity_remaining');
+        return new DetailProductResource($product);
     }
 
 

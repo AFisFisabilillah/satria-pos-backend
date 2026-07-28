@@ -133,13 +133,30 @@ class ProductControllerTest extends TestCase
 
     public function test_show_returns_product_details(): void
     {
+        $category = Category::factory()->create(['name' => 'Kategori A']);
         $product = Product::factory()->create(['unit_id' => $this->unit->id]);
+        $product->categories()->attach($category);
+
+        // Buat dummy stok item dengan quantity
+        $stockSupply = \App\Models\StockSupply::factory()->create();
+        \App\Models\StockSupplyItem::factory()->create([
+            'stock_supply_id' => $stockSupply->id,
+            'product_id' => $product->id,
+            'quantity_remaining' => 15
+        ]);
+        \App\Models\StockSupplyItem::factory()->create([
+            'stock_supply_id' => $stockSupply->id,
+            'product_id' => $product->id,
+            'quantity_remaining' => 20
+        ]);
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->getJson("/api/products/{$product->id}");
 
         $response->assertOk()
-            ->assertJsonFragment(['name' => $product->name, 'code' => $product->code]);
+            ->assertJsonFragment(['name' => $product->name, 'code' => $product->code])
+            ->assertJsonPath('data.quantity', 35) // 15 + 20
+            ->assertJsonPath('data.categories.0.name', 'Kategori A');
     }
 
     public function test_update_product_without_image(): void
