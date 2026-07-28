@@ -95,4 +95,10 @@ class ProductController extends Controller
 
         return response()->json();
     }
+
+    public function toggleActive(Product $product){
+        $product->active = !$product->active;
+        $product->save();
+        return new ProductResource($product);
+    }
 }
