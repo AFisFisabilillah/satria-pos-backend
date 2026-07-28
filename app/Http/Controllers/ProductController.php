@@ -115,4 +115,19 @@ class ProductController extends Controller
         $product->save();
         return new ProductResource($product);
     }
+
+    public function bulkToggleActive(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:products,id',
+        ]);
+
+        Product::whereIn('id', $request->ids)
+            ->update(['active' => \Illuminate\Support\Facades\DB::raw('NOT active')]);
+
+        return response()->json([
+            'message' => 'Products status toggled successfully.'
+        ]);
+    }
 }

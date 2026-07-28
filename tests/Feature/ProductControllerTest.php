@@ -284,4 +284,36 @@ class ProductControllerTest extends TestCase
             'active' => true // toggle kembali jadi true
         ]);
     }
+
+    public function test_bulk_toggle_active_changes_multiple_products_status(): void
+    {
+        $product1 = Product::factory()->create(['unit_id' => $this->unit->id, 'active' => true]);
+        $product2 = Product::factory()->create(['unit_id' => $this->unit->id, 'active' => false]);
+        $product3 = Product::factory()->create(['unit_id' => $this->unit->id, 'active' => true]); // won't be sent
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->postJson("/api/products/bulk-toggle-active", [
+                'ids' => [$product1->id, $product2->id]
+            ]);
+
+        $response->assertOk()
+            ->assertJsonFragment(['message' => 'Products status toggled successfully.']);
+
+        // Check if toggled correctly
+        $this->assertDatabaseHas('products', [
+            'id' => $product1->id,
+            'active' => false // true -> false
+        ]);
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product2->id,
+            'active' => true // false -> true
+        ]);
+
+        // Unaffected product
+        $this->assertDatabaseHas('products', [
+            'id' => $product3->id,
+            'active' => true
+        ]);
+    }
 }

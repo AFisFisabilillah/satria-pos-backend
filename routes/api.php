@@ -26,6 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/units', [UnitController::class, 'store']);
     Route::delete('/units/{unit}', [UnitController::class, 'destroy']);
 //    products
+    Route::post('/products/bulk-toggle-active', [ProductController::class, 'bulkToggleActive']);
     Route::apiResource('products', ProductController::class);
     Route::patch("/products/{product}/toggle-active", [ProductController::class, 'toggleActive']);
 //    supliers
