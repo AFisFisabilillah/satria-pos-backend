@@ -92,10 +92,23 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        if ($product->stockSupplyItems()->exists()) {
+            return response()->json([
+                'message' => 'Cannot delete product because it already has stock supply records. Please deactivate it instead.'
+            ], 422);
+        }
+
+        if ($product->image && Storage::disk('public')->exists($product->image)) {
+            Storage::disk('public')->delete($product->image);
+        }
+
         $product->delete();
 
-        return response()->json();
+        return response()->json([
+            'message' => 'Product deleted successfully.'
+        ]);
     }
+
 
     public function toggleActive(Product $product){
         $product->active = !$product->active;

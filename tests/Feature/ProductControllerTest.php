@@ -233,17 +233,55 @@ class ProductControllerTest extends TestCase
         Storage::disk('public')->assertExists($product->image);
     }
 
-    public function test_destroy_deletes_product(): void
+    public function test_destroy_deletes_product_and_removes_image(): void
     {
-        $product = Product::factory()->create(['unit_id' => $this->unit->id]);
+        // Setup dummy file
+        $oldFile = UploadedFile::fake()->image('old.jpg');
+        $oldPath = $oldFile->storeAs('images/products', 'old.jpg', 'public');
+
+        $product = Product::factory()->create(['unit_id' => $this->unit->id, 'image' => $oldPath]);
+
+        Storage::disk('public')->assertExists($oldPath);
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->deleteJson("/api/products/{$product->id}");
 
-        $response->assertOk();
+        $response->assertOk()
+            ->assertJsonFragment(['message' => 'Product deleted successfully.']);
 
         $this->assertDatabaseMissing('products', [
             'id' => $product->id,
+        ]);
+
+        Storage::disk('public')->assertMissing($oldPath);
+    }
+
+    public function test_toggle_active_changes_product_status(): void
+    {
+        $product = Product::factory()->create([
+            'unit_id' => $this->unit->id,
+            'active' => true
+        ]);
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->patchJson("/api/products/{$product->id}/toggle-active");
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'active' => false // harusnya toggle jadi false
+        ]);
+
+        // Toggle kembali
+        $response2 = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->patchJson("/api/products/{$product->id}/toggle-active");
+
+        $response2->assertOk();
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'active' => true // toggle kembali jadi true
         ]);
     }
 }
