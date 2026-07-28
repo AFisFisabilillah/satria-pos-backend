@@ -36,6 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post("/stock-supply", [StockSupplyController::class, 'store']);
     Route::get("/stock-supply/{stockSupply}", [StockSupplyController::class, 'show']);
     Route::put("/stock-supply/{stockSupply}", [StockSupplyController::class, 'update']);
+    Route::delete("/stock-supply/{stockSupply}", [StockSupplyController::class, 'destroy']);
     Route::delete("/stock-supply-items/{stockSupplyItem}", [\App\Http\Controllers\StockSupplyItemController::class, 'destroy']);
 
 });

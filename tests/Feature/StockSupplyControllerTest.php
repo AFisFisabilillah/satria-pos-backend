@@ -298,4 +298,55 @@ class StockSupplyControllerTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonFragment(['message' => 'Cannot delete item because stock has already been used.']);
     }
+
+    public function test_destroy_deletes_stock_supply_if_all_items_unused(): void
+    {
+        $stockSupply = StockSupply::factory()->create();
+        $product = Product::factory()->create();
+
+        StockSupplyItem::factory()->create([
+            'stock_supply_id' => $stockSupply->id,
+            'product_id' => $product->id,
+            'quantity_in' => 50,
+            'quantity_remaining' => 50, // Unused
+        ]);
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->deleteJson("/api/stock-supply/{$stockSupply->id}");
+
+        $response->assertOk()
+            ->assertJsonFragment(['message' => 'Stock supply deleted successfully.']);
+
+        $this->assertDatabaseMissing('stock_supplies', ['id' => $stockSupply->id]);
+    }
+
+    public function test_destroy_fails_if_any_item_is_used(): void
+    {
+        $stockSupply = StockSupply::factory()->create();
+        $product = Product::factory()->create();
+
+        // Unused item
+        StockSupplyItem::factory()->create([
+            'stock_supply_id' => $stockSupply->id,
+            'product_id' => $product->id,
+            'quantity_in' => 50,
+            'quantity_remaining' => 50,
+        ]);
+
+        // Used item
+        StockSupplyItem::factory()->create([
+            'stock_supply_id' => $stockSupply->id,
+            'product_id' => $product->id,
+            'quantity_in' => 50,
+            'quantity_remaining' => 45, // 5 used
+        ]);
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->deleteJson("/api/stock-supply/{$stockSupply->id}");
+
+        $response->assertStatus(422)
+            ->assertJsonFragment(['message' => 'Cannot delete stock supply because one or more items have already been consumed.']);
+
+        $this->assertDatabaseHas('stock_supplies', ['id' => $stockSupply->id]);
+    }
 }

@@ -117,4 +117,23 @@ class StockSupplyController extends Controller
         return new StockSupplyResource($stockSupply->refresh()->load(['suplier', 'stockSupplyItem']));
     }
 
+    public function destroy(StockSupply $stockSupply)
+    {
+        // Cek secara efisien apakah ada item yang stoknya sudah dipakai
+        $hasUsedStock = $stockSupply->stockSupplyItem()
+            ->whereColumn('quantity_in', '!=', 'quantity_remaining')
+            ->exists();
+
+        if ($hasUsedStock) {
+            return response()->json([
+                'message' => 'Cannot delete stock supply because one or more items have already been consumed.'
+            ], 422);
+        }
+
+        $stockSupply->delete();
+
+        return response()->json([
+            'message' => 'Stock supply deleted successfully.'
+        ]);
+    }
 }
