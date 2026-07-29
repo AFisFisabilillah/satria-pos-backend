@@ -74,7 +74,7 @@ class TransactionController extends Controller
 
             DB::commit();
 
-            return new TransactionResource($transaction->load(['items.product', 'items.cogs']));
+            return new TransactionResource($transaction->loadCount('items'));
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([

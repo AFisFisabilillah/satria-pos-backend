@@ -76,9 +76,9 @@ class TransactionControllerTest extends TestCase
         $response->assertStatus(201)
             ->assertJsonStructure([
                 'data' => [
-                    'id', 'invoice_number', 'total_price', 'items'
+                    'id', 'invoice_number', 'total_price', 'items_count'
                 ]
-            ]);
+            ])->assertJsonFragment(['items_count' => 1]);
 
         // Verify Header Transaction created
         $transaction = Transaction::first();
