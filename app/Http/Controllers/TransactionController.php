@@ -83,4 +83,32 @@ class TransactionController extends Controller
             ], 422);
         }
     }
+
+    public function index(){
+        $search = request()->query('search');
+        $startDate = request()->query('start_date');
+        $endDate = request()->query('end_date');
+        $size = request()->query("size",10);
+
+        $query = Transaction::query();
+        $query->withCount("items");
+
+        $query->when($search, function ($query, $search) {
+           $query->where("invoice_number", "like", "%{$search}");
+        });
+        $query->when($startDate, function ($query, $startDate) {
+            $query->where("created_at", ">=", $startDate);
+        });
+        $query->when($endDate, function ($query, $endDate) {
+            $query->where("created_at", "<=", $endDate);
+        });
+
+        return TransactionResource::collection($query->paginate($size));
+    }
+
+    public function show(Transaction $transaction){
+        $transaction->load(["items.product"]);
+        return new \App\Http\Resources\DetailTransactionResource($transaction);
+
+    }
 }

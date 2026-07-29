@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Models\TransactionItem;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Request;
+use App\Http\Resources\ProductSummaryResource;
 
 /** @mixin TransactionItem */
 class TransactionItemResource extends JsonResource
@@ -19,7 +20,7 @@ class TransactionItemResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'transaction_id' => $this->transaction_id,
-            'product' => new ProductResource($this->whenLoaded('product')),
+            'product' => new ProductSummaryResource($this->whenLoaded('product')),
         ];
     }
 }

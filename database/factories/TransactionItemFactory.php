@@ -17,7 +17,7 @@ class TransactionItemFactory extends Factory
         return [
             'quantity' => $this->faker->randomNumber(),//
             'selling_price' => $this->faker->randomNumber(),
-            'sutotal' => $this->faker->randomNumber(),
+            'subtotal' => $this->faker->randomNumber(),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
 

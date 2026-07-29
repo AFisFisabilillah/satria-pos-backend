@@ -166,4 +166,43 @@ class TransactionControllerTest extends TestCase
             'quantity_remaining' => 5,
         ]);
     }
+
+    public function test_index_returns_paginated_transactions_with_items_count(): void
+    {
+        $transaction = Transaction::factory()->create();
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->getJson('/api/transactions?size=10');
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => ['id', 'invoice_number', 'total_price', 'items_count']
+                ],
+                'links',
+                'meta'
+            ]);
+    }
+
+    public function test_show_returns_transaction_detail_with_items_relation(): void
+    {
+        $product = Product::factory()->create();
+        $transaction = Transaction::factory()->create();
+        \App\Models\TransactionItem::factory()->create([
+            'transaction_id' => $transaction->id,
+            'product_id' => $product->id
+        ]);
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->getJson("/api/transactions/{$transaction->id}");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'id', 'invoice_number', 'total_price', 'items' => [
+                        '*' => ['id', 'quantity', 'selling_price', 'subtotal', 'product']
+                    ]
+                ]
+            ]);
+    }
 }
