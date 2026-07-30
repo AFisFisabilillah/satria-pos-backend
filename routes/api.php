@@ -46,4 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get("/transactions", [\App\Http\Controllers\TransactionController::class, 'index']);
     Route::get("/transactions/{transaction}", [\App\Http\Controllers\TransactionController::class, 'show']);
 
+//    Members
+    Route::apiResource('members', \App\Http\Controllers\MemberController::class);
+
 });
