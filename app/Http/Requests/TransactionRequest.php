@@ -9,11 +9,9 @@ class TransactionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'total_price' => ['required', 'integer'],
-            'paid_amount' => ['required', 'integer'],
-            'change_amount' => ['required', 'integer'],
-            'payment_method' => ['required'],
-            'products' => ['required', 'array'],
+            'paid_amount' => ['required', 'integer', 'min:0'],
+            'payment_method' => ['required', 'string'],
+            'products' => ['required', 'array', 'min:1'],
             'products.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'products.*.quantity' => ['required', 'integer', 'min:1'],
         ];

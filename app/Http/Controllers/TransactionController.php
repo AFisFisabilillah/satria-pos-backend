@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\TransactionRequest;
+use App\Http\Resources\DetailTransactionResource;
 use App\Http\Resources\TransactionResource;
 use App\Models\Product;
 use App\Models\StockSupplyItem;
@@ -19,11 +20,25 @@ class TransactionController extends Controller
         try {
             DB::beginTransaction();
 
+            // 1. Backend loop keranjang belanja dan hitung Subtotal/Total Price
+            $totalPrice = 0;
+            foreach ($data['products'] as $item) {
+                $product = Product::findOrFail($item['product_id']);
+                $totalPrice += ($product->sale_price * $item['quantity']);
+            }
+
+            // Validasi pembayaran
+            if ($data['paid_amount'] < $totalPrice) {
+                throw new \Exception("Jumlah pembayaran (paid_amount) kurang dari total tagihan (total_price: {$totalPrice}).");
+            }
+
+            $changeAmount = $data['paid_amount'] - $totalPrice;
+
             $transaction = Transaction::create([
                 'invoice_number' => 'INV-' . strtoupper(Str::random(10)),
-                'total_price' => $data['total_price'],
+                'total_price' => $totalPrice,
                 'paid_amount' => $data['paid_amount'],
-                'change_amount' => $data['change_amount'],
+                'change_amount' => $changeAmount,
                 'payment_method' => $data['payment_method'],
             ]);
 
@@ -108,7 +123,7 @@ class TransactionController extends Controller
 
     public function show(Transaction $transaction){
         $transaction->load(["items.product"]);
-        return new \App\Http\Resources\DetailTransactionResource($transaction);
+        return new DetailTransactionResource($transaction);
 
     }
 }

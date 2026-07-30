@@ -58,9 +58,9 @@ class TransactionControllerTest extends TestCase
         // - Batch 2 (5 taken)      -> remaining: 15
 
         $payload = [
-            'total_price' => 150000,
+            
             'paid_amount' => 150000,
-            'change_amount' => 0,
+            
             'payment_method' => 'cash',
             'products' => [
                 [
@@ -136,9 +136,9 @@ class TransactionControllerTest extends TestCase
         ]);
 
         $payload = [
-            'total_price' => 100000,
+            
             'paid_amount' => 100000,
-            'change_amount' => 0,
+            
             'payment_method' => 'cash',
             'products' => [
                 [
