@@ -178,4 +178,36 @@ class SuplierControllerTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['ids.0', 'ids.1']);
     }
+
+    public function test_suplier_deletion_sets_stock_supply_suplier_id_to_null(): void
+    {
+        $suplier = Suplier::factory()->create();
+
+        // Create a stock supply tied to this suplier
+        $stockSupply = \App\Models\StockSupply::factory()->create([
+            'suplier_id' => $suplier->id
+        ]);
+
+        $this->assertDatabaseHas('stock_supplies', [
+            'id' => $stockSupply->id,
+            'suplier_id' => $suplier->id
+        ]);
+
+        // Hit the delete API endpoint
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->deleteJson("/api/supliers/{$suplier->id}");
+
+        $response->assertOk();
+
+        // The suplier should be deleted
+        $this->assertDatabaseMissing('supliers', [
+            'id' => $suplier->id
+        ]);
+
+        // The stock supply should STILL exist, but suplier_id should be NULL
+        $this->assertDatabaseHas('stock_supplies', [
+            'id' => $stockSupply->id,
+            'suplier_id' => null
+        ]);
+    }
 }
