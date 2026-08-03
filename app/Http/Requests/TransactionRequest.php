@@ -14,6 +14,8 @@ class TransactionRequest extends FormRequest
             'products' => ['required', 'array', 'min:1'],
             'products.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'products.*.quantity' => ['required', 'integer', 'min:1'],
+            'vouchers' => ['nullable', 'array'],
+            'vouchers.*' => ['integer', 'exists:vouchers,id'],
         ];
     }
 

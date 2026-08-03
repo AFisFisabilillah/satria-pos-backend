@@ -27,20 +27,74 @@ class TransactionController extends Controller
                 $totalPrice += ($product->sale_price * $item['quantity']);
             }
 
-            // Validasi pembayaran
-            if ($data['paid_amount'] < $totalPrice) {
-                throw new \Exception("Jumlah pembayaran (paid_amount) kurang dari total tagihan (total_price: {$totalPrice}).");
+            // 2. Validasi voucher dan hitung diskon
+            $totalDiscount = 0;
+            $appliedVouchers = [];
+
+            if (!empty($data['vouchers'])) {
+                $vouchers = \App\Models\Voucher::whereIn('id', $data['vouchers'])
+                    ->lockForUpdate() // Prevent race condition for quota
+                    ->get();
+
+                foreach ($vouchers as $voucher) {
+                    if (!$voucher->active) {
+                        throw new \Exception("Voucher '{$voucher->code}' tidak aktif.");
+                    }
+                    if ($voucher->expired_at && \Carbon\Carbon::parse($voucher->expired_at)->startOfDay()->isPast()) {
+                        throw new \Exception("Voucher '{$voucher->code}' sudah kedaluwarsa.");
+                    }
+                    if ($voucher->quota < 1) {
+                        throw new \Exception("Kuota voucher '{$voucher->code}' sudah habis.");
+                    }
+                    if ($voucher->min_purchase && $totalPrice < $voucher->min_purchase) {
+                        throw new \Exception("Total belanja tidak memenuhi syarat minimum untuk voucher '{$voucher->code}'.");
+                    }
+
+                    $discount = 0;
+                    if ($voucher->type === 'percent') {
+                        $discount = ($totalPrice * $voucher->value) / 100;
+                    } else { // fixed
+                        $discount = $voucher->value;
+                    }
+
+                    $totalDiscount += $discount;
+                    $appliedVouchers[] = [
+                        'voucher' => $voucher,
+                        'discount' => $discount
+                    ];
+                    
+                    $voucher->decrement('quota', 1);
+                }
             }
 
-            $changeAmount = $data['paid_amount'] - $totalPrice;
+            // Batasi diskon agar tidak melebihi total belanja
+            if ($totalDiscount > $totalPrice) {
+                $totalDiscount = $totalPrice;
+            }
+
+            $finalPrice = $totalPrice - $totalDiscount;
+
+            // Validasi pembayaran
+            if ($data['paid_amount'] < $finalPrice) {
+                throw new \Exception("Jumlah pembayaran (paid_amount) kurang dari total tagihan (total_price: {$finalPrice}).");
+            }
+
+            $changeAmount = $data['paid_amount'] - $finalPrice;
 
             $transaction = Transaction::create([
                 'invoice_number' => 'INV-' . strtoupper(Str::random(10)),
-                'total_price' => $totalPrice,
+                'total_price' => $finalPrice,
                 'paid_amount' => $data['paid_amount'],
                 'change_amount' => $changeAmount,
                 'payment_method' => $data['payment_method'],
             ]);
+
+            // Save voucher usages
+            foreach ($appliedVouchers as $applied) {
+                $transaction->vouchers()->attach($applied['voucher']->id, [
+                    'discount_applied' => $applied['discount']
+                ]);
+            }
 
             foreach ($data['products'] as $item) {
                 $qtyNeeded = $item['quantity'];

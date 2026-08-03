@@ -16,4 +16,11 @@ class Transaction extends Model
     {
         return $this->hasMany(TransactionItem::class);
     }
+
+    public function vouchers()
+    {
+        return $this->belongsToMany(Voucher::class, 'transaction_voucher')
+                    ->withPivot('discount_applied')
+                    ->withTimestamps();
+    }
 }
