@@ -6,6 +6,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockSupplyController;
 use App\Http\Controllers\SuplierController;
 use App\Http\Controllers\UnitController;
+use App\Http\Controllers\VoucherController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -48,5 +49,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //    Members
     Route::apiResource('members', \App\Http\Controllers\MemberController::class);
+
+    // Voucher
+    Route::apiResource("/voucher", VoucherController::class);
+    Route::patch("/voucher/{voucher}/toggle-active", [VoucherController::class, 'toggleActive']);
+    Route::patch("/voucher/bulk-toggle-active", [VoucherController::class, 'bulkToggleActive']);
 
 });
