@@ -13,12 +13,12 @@ class UpdateVoucherRequest extends FormRequest
     {
         $id = $this->route('id');
         return [
-            'code' => ['required','unique:vouchers,code,'.$id, 'regex:\S+'],
+            'code' => ['required','unique:vouchers,code,'.$id, 'regex:/^\S+$/'],
             'type' => ['required',new Enum(VoucherType::class)],
             'value' => [
-                'required',
+                'required', 'numeric',
                 Rule::when(
-                    $this->input('type') === VoucherType::PERCENT,
+                    $this->input('type') === VoucherType::PERCENT->value,
                     ["max:100"]
                 )
             ],

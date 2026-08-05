@@ -19,7 +19,7 @@ class StockSupplyItemControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $this->user = User::factory()->create(['role' => \App\Enums\UserRole::SuperAdmin->value]);
         $this->token = $this->user->createToken('Token_Web')->plainTextToken;
     }
 

@@ -18,7 +18,7 @@ class VoucherControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $this->user = User::factory()->create(['role' => \App\Enums\UserRole::SuperAdmin->value]);
         $this->token = $this->user->createToken('Token_Web')->plainTextToken;
     }
 
@@ -27,7 +27,7 @@ class VoucherControllerTest extends TestCase
         Voucher::factory()->count(15)->create();
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
-            ->getJson('/api/vouchers?size=10');
+            ->getJson('/api/voucher?size=10');
 
         $response->assertOk()
             ->assertJsonCount(10, 'data')
@@ -51,16 +51,16 @@ class VoucherControllerTest extends TestCase
 
     public function test_index_can_search_vouchers(): void
     {
-        Voucher::factory()->create(['name' => 'Discount 2024']);
-        Voucher::factory()->create(['name' => 'Promo Ramadhan']);
+        Voucher::factory()->create(['code' => 'DISC2024']);
+        Voucher::factory()->create(['code' => 'PROMO']);
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
-            ->getJson('/api/vouchers?search=2024');
+            ->getJson('/api/voucher?search=2024');
 
         $response->assertOk()
             ->assertJsonCount(1, 'data');
         
-        $this->assertEquals('Discount 2024', $response->json('data.0.name'));
+        $this->assertEquals('DISC2024', $response->json('data.0.code'));
     }
 
     public function test_index_can_filter_by_active_status(): void
@@ -69,7 +69,7 @@ class VoucherControllerTest extends TestCase
         Voucher::factory()->create(['active' => false]);
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
-            ->getJson('/api/vouchers?active=1');
+            ->getJson('/api/voucher?active=1');
 
         $response->assertOk()
             ->assertJsonCount(1, 'data');
@@ -88,7 +88,7 @@ class VoucherControllerTest extends TestCase
         ];
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
-            ->postJson('/api/vouchers', $payload);
+            ->postJson('/api/voucher', $payload);
 
         $response->assertCreated()
             ->assertJsonPath('data.code', 'NEWVOUCHER');
@@ -102,7 +102,7 @@ class VoucherControllerTest extends TestCase
     public function test_store_validates_required_fields(): void
     {
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
-            ->postJson('/api/vouchers', []);
+            ->postJson('/api/voucher', []);
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors(['code', 'type', 'value', 'quota']);
@@ -119,7 +119,7 @@ class VoucherControllerTest extends TestCase
         ];
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
-            ->postJson('/api/vouchers', $payload);
+            ->postJson('/api/voucher', $payload);
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors(['value']);
@@ -130,7 +130,7 @@ class VoucherControllerTest extends TestCase
         $voucher = Voucher::factory()->create();
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
-            ->getJson("/api/vouchers/{$voucher->id}");
+            ->getJson("/api/voucher/{$voucher->id}");
 
         $response->assertOk()
             ->assertJsonPath('data.id', $voucher->id);
@@ -151,7 +151,7 @@ class VoucherControllerTest extends TestCase
         ];
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
-            ->putJson("/api/vouchers/{$voucher->id}", $payload);
+            ->putJson("/api/voucher/{$voucher->id}", $payload);
 
         $response->assertOk()
             ->assertJsonPath('data.code', 'NEWCODE');
@@ -168,7 +168,7 @@ class VoucherControllerTest extends TestCase
         $voucher = Voucher::factory()->create();
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
-            ->deleteJson("/api/vouchers/{$voucher->id}");
+            ->deleteJson("/api/voucher/{$voucher->id}");
 
         $response->assertOk()
             ->assertJsonPath('status', 'success');
@@ -183,7 +183,7 @@ class VoucherControllerTest extends TestCase
         $voucher = Voucher::factory()->create(['active' => true]);
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
-            ->patchJson("/api/vouchers/{$voucher->id}/toggle-active");
+            ->patchJson("/api/voucher/{$voucher->id}/toggle-active");
 
         $response->assertOk()
             ->assertJsonPath('status', 'success');
@@ -204,7 +204,7 @@ class VoucherControllerTest extends TestCase
         ];
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
-            ->postJson("/api/vouchers/bulk-toggle-active", $payload);
+            ->patchJson("/api/voucher/bulk-toggle-active", $payload);
 
         $response->assertOk()
             ->assertJsonPath('message', 'Products status toggled successfully.');

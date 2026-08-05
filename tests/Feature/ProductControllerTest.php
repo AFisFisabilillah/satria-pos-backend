@@ -25,7 +25,7 @@ class ProductControllerTest extends TestCase
 
         Storage::fake('public');
 
-        $this->user = User::factory()->create();
+        $this->user = User::factory()->create(['role' => \App\Enums\UserRole::SuperAdmin->value]);
         $this->token = $this->user->createToken('Token_Web')->plainTextToken;
         $this->unit = Unit::factory()->create();
     }

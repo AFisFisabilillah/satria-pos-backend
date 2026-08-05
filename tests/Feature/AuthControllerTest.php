@@ -17,6 +17,7 @@ class AuthControllerTest extends TestCase
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => 'password123',
+            'role' => \App\Enums\UserRole::SuperAdmin->value,
         ]);
 
         $response = $this->postJson('/api/login', [
@@ -36,6 +37,7 @@ class AuthControllerTest extends TestCase
         User::factory()->create([
             'email' => 'test@example.com',
             'password' => 'password123',
+            'role' => \App\Enums\UserRole::SuperAdmin->value,
         ]);
 
         $response = $this->postJson('/api/login', [
@@ -69,7 +71,7 @@ class AuthControllerTest extends TestCase
 
     public function test_logout_success(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => \App\Enums\UserRole::SuperAdmin->value]);
         $token = $user->createToken('Token_Web')->plainTextToken;
 
         $response = $this->withHeader('Authorization', "Bearer $token")
@@ -97,7 +99,8 @@ class AuthControllerTest extends TestCase
         Storage::fake('public');
 
         $user = User::factory()->create([
-            'name' => 'Old Name'
+            'name' => 'Old Name',
+            'role' => \App\Enums\UserRole::SuperAdmin->value,
         ]);
         $token = $user->createToken('Token_Web')->plainTextToken;
 
@@ -127,7 +130,7 @@ class AuthControllerTest extends TestCase
 
     public function test_update_profile_validation_fails(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => \App\Enums\UserRole::SuperAdmin->value]);
         $token = $user->createToken('Token_Web')->plainTextToken;
 
         $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
