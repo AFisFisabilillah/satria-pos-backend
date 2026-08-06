@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
-class UserCrudTest extends TestCase
+class UserControllerTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 
@@ -38,8 +38,7 @@ class UserCrudTest extends TestCase
         $response = $this->actingAs($this->superAdmin)->getJson('/api/users');
 
         $response->assertStatus(200)
-            ->assertJsonStructure([
-                'message',
+            ->assertJsonStructure( [
                 'data' => [
                     '*' => [
                         'id',
@@ -71,13 +70,13 @@ class UserCrudTest extends TestCase
         $response = $this->actingAs($this->superAdmin)->postJson('/api/users', $userData);
 
         $response->assertStatus(201)
-            ->assertJsonStructure([
-                'message',
+            ->assertJsonStructure( [
                 'data' => [
                     'id',
                     'name',
                     'email',
-                    'role'
+                    'role',
+                    'foto_profile'
                 ]
             ]);
 
@@ -171,8 +170,7 @@ class UserCrudTest extends TestCase
 
         $response = $this->actingAs($this->superAdmin)->deleteJson('/api/users/' . $user->id);
 
-        $response->assertStatus(200)
-            ->assertJsonPath('message', 'Berhasil menghapus user');
+        $response->assertStatus(204);
 
         $this->assertDatabaseMissing('users', [
             'id' => $user->id,

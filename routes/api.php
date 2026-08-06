@@ -7,6 +7,7 @@ use App\Http\Controllers\StockSupplyController;
 use App\Http\Controllers\SuplierController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +43,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Super Admin Only
     Route::middleware('role:super_admin')->group(function () {
+        // Users (Super Admin only CRUD)
+        Route::apiResource('users', UserController::class);
+
         // Categories (Write)
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
