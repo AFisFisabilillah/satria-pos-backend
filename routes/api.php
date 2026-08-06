@@ -79,5 +79,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/voucher/{voucher}', [VoucherController::class, 'destroy']);
         Route::patch('/voucher/{voucher}/toggle-active', [VoucherController::class, 'toggleActive']);
         Route::patch('/voucher/bulk-toggle-active', [VoucherController::class, 'bulkToggleActive']);
+        // Supplier Returns (Write & Read)
+        Route::get('/supplier-returns', [\App\Http\Controllers\SupplierReturnController::class, 'index']);
+        Route::post('/supplier-returns', [\App\Http\Controllers\SupplierReturnController::class, 'store']);
+        Route::get('/supplier-returns/{supplierReturn}', [\App\Http\Controllers\SupplierReturnController::class, 'show']);
     });
 });

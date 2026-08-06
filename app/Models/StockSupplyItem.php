@@ -23,6 +23,11 @@ class StockSupplyItem extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function supplierReturnItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SupplierReturnItem::class);
+    }
+
     protected function casts(): array
     {
         return [
