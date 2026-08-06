@@ -27,7 +27,7 @@ class TransactionControllerTest extends TestCase
     public function test_checkout_processes_transaction_and_fifo_stock_deduction(): void
     {
         // Setup Product with price 10.000
-        $product = Product::factory()->create(['sale_price' => 10000]);
+        $product = Product::factory()->create(['active' => true, 'sale_price' => 10000]);
 
         // Setup 2 Batches of Stock (FIFO)
         $supply = StockSupply::factory()->create();
@@ -125,7 +125,7 @@ class TransactionControllerTest extends TestCase
 
     public function test_checkout_fails_when_stock_is_insufficient(): void
     {
-        $product = Product::factory()->create(['sale_price' => 10000]);
+        $product = Product::factory()->create(['active' => true, 'sale_price' => 10000]);
         $supply = StockSupply::factory()->create();
 
         // Stock only has 5
@@ -186,7 +186,7 @@ class TransactionControllerTest extends TestCase
 
     public function test_show_returns_transaction_detail_with_items_relation(): void
     {
-        $product = Product::factory()->create();
+        $product = Product::factory()->create(['active' => true]);
         $transaction = Transaction::factory()->create();
         \App\Models\TransactionItem::factory()->create([
             'transaction_id' => $transaction->id,
@@ -208,7 +208,7 @@ class TransactionControllerTest extends TestCase
 
     public function test_checkout_applies_multiple_vouchers_correctly(): void
     {
-        $product = Product::factory()->create(['sale_price' => 100000]);
+        $product = Product::factory()->create(['active' => true, 'sale_price' => 100000]);
         $supply = StockSupply::factory()->create();
         StockSupplyItem::factory()->create([
             'stock_supply_id' => $supply->id,
@@ -247,7 +247,7 @@ class TransactionControllerTest extends TestCase
             ->postJson('/api/checkout', $payload);
 
         $response->assertCreated()
-            ->assertJsonPath('data.total_price', 70000);
+            ->assertJsonPath('data.total_price', 72000);
 
         $this->assertDatabaseHas('transaction_voucher', [
             'voucher_id' => $voucherFixed->id,
@@ -256,7 +256,7 @@ class TransactionControllerTest extends TestCase
 
         $this->assertDatabaseHas('transaction_voucher', [
             'voucher_id' => $voucherPercent->id,
-            'discount_applied' => 10000,
+            'discount_applied' => 8000,
         ]);
 
         $this->assertDatabaseHas('vouchers', [
@@ -267,7 +267,7 @@ class TransactionControllerTest extends TestCase
 
     public function test_checkout_fails_if_voucher_inactive(): void
     {
-        $product = Product::factory()->create(['sale_price' => 100000]);
+        $product = Product::factory()->create(['active' => true, 'sale_price' => 100000]);
         $supply = StockSupply::factory()->create();
         StockSupplyItem::factory()->create([
             'stock_supply_id' => $supply->id,
@@ -299,7 +299,7 @@ class TransactionControllerTest extends TestCase
 
     public function test_checkout_fails_if_voucher_expired(): void
     {
-        $product = Product::factory()->create(['sale_price' => 100000]);
+        $product = Product::factory()->create(['active' => true, 'sale_price' => 100000]);
         $supply = StockSupply::factory()->create();
         StockSupplyItem::factory()->create([
             'stock_supply_id' => $supply->id,
@@ -331,7 +331,7 @@ class TransactionControllerTest extends TestCase
 
     public function test_checkout_fails_if_voucher_quota_empty(): void
     {
-        $product = Product::factory()->create(['sale_price' => 100000]);
+        $product = Product::factory()->create(['active' => true, 'sale_price' => 100000]);
         $supply = StockSupply::factory()->create();
         StockSupplyItem::factory()->create([
             'stock_supply_id' => $supply->id,
@@ -363,7 +363,7 @@ class TransactionControllerTest extends TestCase
 
     public function test_checkout_fails_if_min_purchase_not_met(): void
     {
-        $product = Product::factory()->create(['sale_price' => 50000]);
+        $product = Product::factory()->create(['active' => true, 'sale_price' => 50000]);
         $supply = StockSupply::factory()->create();
         StockSupplyItem::factory()->create([
             'stock_supply_id' => $supply->id,
@@ -396,7 +396,7 @@ class TransactionControllerTest extends TestCase
 
     public function test_checkout_caps_discount_at_total_price(): void
     {
-        $product = Product::factory()->create(['sale_price' => 50000]);
+        $product = Product::factory()->create(['active' => true, 'sale_price' => 50000]);
         $supply = StockSupply::factory()->create();
         StockSupplyItem::factory()->create([
             'stock_supply_id' => $supply->id,
@@ -427,5 +427,65 @@ class TransactionControllerTest extends TestCase
 
         $response->assertCreated()
             ->assertJsonPath('data.total_price', 0);
+    }
+
+    public function test_checkout_works_without_member(): void
+    {
+        $product = Product::factory()->create(['active' => true, 'sale_price' => 15000]);
+        $supply = StockSupply::factory()->create();
+        StockSupplyItem::factory()->create([
+            'stock_supply_id' => $supply->id,
+            'product_id' => $product->id,
+            'quantity_remaining' => 10,
+        ]);
+
+        $payload = [
+            'payment_method' => 'cash',
+            'paid_amount' => 15000,
+            'products' => [
+                ['product_id' => $product->id, 'quantity' => 1]
+            ]
+        ];
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->postJson('/api/checkout', $payload);
+
+        $response->assertCreated();
+        $this->assertDatabaseHas('transactions', [
+            'member_id' => null,
+            'total_price' => 15000
+        ]);
+    }
+
+    public function test_checkout_updates_member_total_spent(): void
+    {
+        $product = Product::factory()->create(['active' => true, 'sale_price' => 15000]);
+        $supply = StockSupply::factory()->create();
+        StockSupplyItem::factory()->create([
+            'stock_supply_id' => $supply->id,
+            'product_id' => $product->id,
+            'quantity_remaining' => 10,
+        ]);
+
+        $member = \App\Models\Member::factory()->create(['total_spent' => 0]);
+
+        $payload = [
+            'member_id' => $member->id,
+            'payment_method' => 'cash',
+            'paid_amount' => 15000,
+            'products' => [
+                ['product_id' => $product->id, 'quantity' => 1]
+            ]
+        ];
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->postJson('/api/checkout', $payload);
+
+        $response->assertCreated();
+
+        $this->assertDatabaseHas('members', [
+            'id' => $member->id,
+            'total_spent' => 15000
+        ]);
     }
 }

@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\TransactionRequest;
 use App\Http\Resources\DetailTransactionResource;
 use App\Http\Resources\TransactionResource;
+use App\Models\Member;
 use App\Models\Product;
 use App\Models\StockSupplyItem;
 use App\Models\Transaction;
+use App\Models\Voucher;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -20,11 +22,27 @@ class TransactionController extends Controller
         try {
             DB::beginTransaction();
 
-            // 1. Backend loop keranjang belanja dan hitung Subtotal/Total Price
+            $member = null;
+            if (!empty($request->member_id)) {
+                $member = Member::findOrFail($request->member_id);
+            }
+
             $totalPrice = 0;
+            $processedProducts = [];
+
+            // 1. Validasi Produk & Hitung Total Price
             foreach ($data['products'] as $item) {
                 $product = Product::findOrFail($item['product_id']);
+
+                if (!$product->active) {
+                    throw new \Exception("Produk '{$product->name}' tidak aktif.");
+                }
+
                 $totalPrice += ($product->sale_price * $item['quantity']);
+                $processedProducts[] = [
+                    'product' => $product,
+                    'quantity' => $item['quantity']
+                ];
             }
 
             // 2. Validasi voucher dan hitung diskon
@@ -32,9 +50,11 @@ class TransactionController extends Controller
             $appliedVouchers = [];
 
             if (!empty($data['vouchers'])) {
-                $vouchers = \App\Models\Voucher::whereIn('id', $data['vouchers'])
+                $vouchers = Voucher::whereIn('id', $data['vouchers'])
                     ->lockForUpdate() // Prevent race condition for quota
                     ->get();
+
+                $vouchers = $vouchers->sortBy(fn($v) => $v->type === 'percent' ? 1 : 0);
 
                 foreach ($vouchers as $voucher) {
                     if (!$voucher->active) {
@@ -50,9 +70,10 @@ class TransactionController extends Controller
                         throw new \Exception("Total belanja tidak memenuhi syarat minimum untuk voucher '{$voucher->code}'.");
                     }
 
+                    $currentPriceTarget = $totalPrice - $totalDiscount; // Diskon dihitung dari sisa harga
                     $discount = 0;
                     if ($voucher->type === 'percent') {
-                        $discount = ($totalPrice * $voucher->value) / 100;
+                        $discount = ($currentPriceTarget * $voucher->value) / 100;
                     } else { // fixed
                         $discount = $voucher->value;
                     }
@@ -62,7 +83,7 @@ class TransactionController extends Controller
                         'voucher' => $voucher,
                         'discount' => $discount
                     ];
-                    
+
                     $voucher->decrement('quota', 1);
                 }
             }
@@ -79,14 +100,27 @@ class TransactionController extends Controller
                 throw new \Exception("Jumlah pembayaran (paid_amount) kurang dari total tagihan (total_price: {$finalPrice}).");
             }
 
+            // Update Member jika ada (setelah validasi lolos)
+            if ($member) {
+                $member->total_spent += $finalPrice;
+                $member->save();
+            }
+
             $changeAmount = $data['paid_amount'] - $finalPrice;
 
+            // Generate unique invoice
+            $invoiceNumber = 'INV-' . strtoupper(Str::random(10));
+            while (Transaction::where('invoice_number', $invoiceNumber)->exists()) {
+                $invoiceNumber = 'INV-' . strtoupper(Str::random(10));
+            }
+
             $transaction = Transaction::create([
-                'invoice_number' => 'INV-' . strtoupper(Str::random(10)),
+                'invoice_number' => $invoiceNumber,
                 'total_price' => $finalPrice,
                 'paid_amount' => $data['paid_amount'],
                 'change_amount' => $changeAmount,
                 'payment_method' => $data['payment_method'],
+                'member_id' => $member ? $member->id : null
             ]);
 
             // Save voucher usages
@@ -96,14 +130,19 @@ class TransactionController extends Controller
                 ]);
             }
 
-            foreach ($data['products'] as $item) {
+            // 3. Proses FIFO
+            foreach ($processedProducts as $item) {
                 $qtyNeeded = $item['quantity'];
+                $product = $item['product'];
 
-                $product = Product::findOrFail($item['product_id']);
+                // Lock for update directly on the query to prevent race condition before sum check
+                $supplyBatches = StockSupplyItem::where('product_id', $product->id)
+                    ->where('quantity_remaining', '>', 0)
+                    ->orderBy('created_at', 'asc') // First-In, First-Out
+                    ->lockForUpdate() // Lock baris ini selama transaksi DB
+                    ->get();
 
-                // Validasi Cek Ketersediaan Sisa Stok (Keseluruhan)
-                $totalStock = StockSupplyItem::where('product_id', $product->id)
-                    ->sum('quantity_remaining');
+                $totalStock = $supplyBatches->sum('quantity_remaining');
 
                 if ($totalStock < $qtyNeeded) {
                     throw new \Exception("Stok untuk produk '{$product->name}' tidak mencukupi. Sisa stok: {$totalStock}");
@@ -117,17 +156,9 @@ class TransactionController extends Controller
                     'subtotal' => $qtyNeeded * $product->sale_price,
                 ]);
 
-                // Logika FIFO & Snapshot Harga Modal (Purchase Price)
-                $supplyBatches = StockSupplyItem::where('product_id', $product->id)
-                    ->where('quantity_remaining', '>', 0)
-                    ->orderBy('created_at', 'asc') // First-In, First-Out (Terlama dipotong duluan)
-                    ->lockForUpdate() // Cegah race condition
-                    ->get();
-
                 foreach ($supplyBatches as $batch) {
                     if ($qtyNeeded <= 0) break;
 
-//                    Mengambil nilai terkecil dari quantity
                     $take = min($batch->quantity_remaining, $qtyNeeded);
 
                     $batch->decrement('quantity_remaining', $take);
@@ -163,7 +194,7 @@ class TransactionController extends Controller
         $query->withCount("items");
 
         $query->when($search, function ($query, $search) {
-           $query->where("invoice_number", "like", "%{$search}");
+           $query->where("invoice_number", "like", "%{$search}%");
         });
         $query->when($startDate, function ($query, $startDate) {
             $query->where("created_at", ">=", $startDate);
@@ -176,7 +207,7 @@ class TransactionController extends Controller
     }
 
     public function show(Transaction $transaction){
-        $transaction->load(["items.product"]);
+        $transaction->load(["items.product", "member"]);
         return new DetailTransactionResource($transaction);
 
     }

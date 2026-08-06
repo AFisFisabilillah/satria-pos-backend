@@ -9,6 +9,7 @@ class TransactionRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'member_id' => 'nullable|exists:members,id',
             'paid_amount' => ['required', 'integer', 'min:0'],
             'payment_method' => ['required', 'string'],
             'products' => ['required', 'array', 'min:1'],
