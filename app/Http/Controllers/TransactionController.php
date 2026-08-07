@@ -12,9 +12,68 @@ use App\Models\Transaction;
 use App\Models\Voucher;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use OpenApi\Attributes as OA;
 
 class TransactionController extends Controller
 {
+    #[OA\Post(
+        path: '/api/checkout',
+        summary: 'Checkout / Create Transaction',
+        description: 'Processes a new transaction. Includes FIFO stock reduction and optional voucher validation.',
+        security: [['bearerAuth' => []]],
+        tags: ['Transaction'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['paid_amount', 'payment_method', 'products'],
+                properties: [
+                    new OA\Property(property: 'member_id', type: 'integer', nullable: true, example: 1),
+                    new OA\Property(property: 'paid_amount', type: 'integer', example: 150000),
+                    new OA\Property(property: 'payment_method', type: 'string', example: 'cash'),
+                    new OA\Property(
+                        property: 'products',
+                        type: 'array',
+                        items: new OA\Items(
+                            properties: [
+                                new OA\Property(property: 'product_id', type: 'integer', example: 5),
+                                new OA\Property(property: 'quantity', type: 'integer', example: 2)
+                            ]
+                        )
+                    ),
+                    new OA\Property(property: 'vouchers', type: 'array', items: new OA\Items(type: 'integer'), example: [1, 2], nullable: true)
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Transaction created successfully',
+                content: new OA\JsonContent(
+                    example: [
+                        'data' => [
+                            'id' => 1,
+                            'invoice_number' => 'INV-ABC123XYZ',
+                            'total_price' => 120000,
+                            'paid_amount' => 150000,
+                            'change_amount' => 30000,
+                            'payment_method' => 'cash',
+                            'items_count' => 2
+                        ]
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Validation error or insufficient stock',
+                content: new OA\JsonContent(
+                    example: [
+                        'message' => 'Gagal memproses transaksi.',
+                        'error' => 'Stok untuk produk "Kopi" tidak mencukupi. Sisa stok: 1'
+                    ]
+                )
+            )
+        ]
+    )]
     public function checkout(TransactionRequest $request)
     {
         $data = $request->validated();
@@ -184,6 +243,42 @@ class TransactionController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/api/transactions',
+        summary: 'List Transactions',
+        security: [['bearerAuth' => []]],
+        tags: ['Transaction'],
+        parameters: [
+            new OA\Parameter(name: 'search', in: 'query', required: false, description: 'Search invoice', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'start_date', in: 'query', required: false, schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date', in: 'query', required: false, schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'size', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 10))
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Transactions list',
+                content: new OA\JsonContent(
+                    example: [
+                        'data' => [
+                            [
+                                'id' => 1,
+                                'invoice_number' => 'INV-ABC123XYZ',
+                                'total_price' => 120000,
+                                'paid_amount' => 150000,
+                                'change_amount' => 30000,
+                                'payment_method' => 'cash',
+                                'created_at' => '2026-08-06T10:00:00.000000Z',
+                                'items_count' => 2
+                            ]
+                        ],
+                        'links' => ['first' => '...', 'last' => '...'],
+                        'meta' => ['current_page' => 1, 'per_page' => 10, 'total' => 1]
+                    ]
+                )
+            )
+        ]
+    )]
     public function index(){
         $search = request()->query('search');
         $startDate = request()->query('start_date');
@@ -206,6 +301,49 @@ class TransactionController extends Controller
         return TransactionResource::collection($query->paginate($size));
     }
 
+    #[OA\Get(
+        path: '/api/transactions/{transaction}',
+        summary: 'Get Transaction Detail',
+        security: [['bearerAuth' => []]],
+        tags: ['Transaction'],
+        parameters: [
+            new OA\Parameter(name: 'transaction', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Transaction details with items and member',
+                content: new OA\JsonContent(
+                    example: [
+                        'data' => [
+                            'id' => 1,
+                            'invoice_number' => 'INV-ABC123XYZ',
+                            'total_price' => 120000,
+                            'paid_amount' => 150000,
+                            'change_amount' => 30000,
+                            'payment_method' => 'cash',
+                            'items' => [
+                                [
+                                    'id' => 1,
+                                    'product_id' => 5,
+                                    'quantity' => 2,
+                                    'selling_price' => 60000,
+                                    'subtotal' => 120000,
+                                    'product' => ['id' => 5, 'name' => 'Kopi']
+                                ]
+                            ],
+                            'member' => [
+                                'id' => 1,
+                                'name' => 'John Doe',
+                                'member_code' => 'MEM-12345',
+                                'total_spent' => 500000
+                            ]
+                        ]
+                    ]
+                )
+            )
+        ]
+    )]
     public function show(Transaction $transaction){
         $transaction->load(["items.product", "member"]);
         return new DetailTransactionResource($transaction);

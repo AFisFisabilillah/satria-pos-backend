@@ -9,12 +9,35 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    #[OA\Get(
+        path: '/api/users',
+        summary: 'List Users',
+        security: [['bearerAuth' => []]],
+        tags: ['User Management'],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'List of users',
+                content: new OA\JsonContent(
+                    example: [
+                        'data' => [
+                            [
+                                'id' => 1,
+                                'name' => 'Admin User',
+                                'email' => 'admin@satriapos.com',
+                                'role' => 'super_admin',
+                                'role_label' => 'Super Admin'
+                            ]
+                        ]
+                    ]
+                )
+            )
+        ]
+    )]
     public function index()
     {
         $users = User::all();
@@ -22,9 +45,41 @@ class UserController extends Controller
         return UserResource::collection($users);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    #[OA\Post(
+        path: '/api/users',
+        summary: 'Create User',
+        security: [['bearerAuth' => []]],
+        tags: ['User Management'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name', 'email', 'password'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string'),
+                    new OA\Property(property: 'email', type: 'string', format: 'email'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password'),
+                    new OA\Property(property: 'role', type: 'string', enum: ['super_admin', 'cashier'], default: 'cashier')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'User created',
+                content: new OA\JsonContent(
+                    example: [
+                        'data' => [
+                            'id' => 2,
+                            'name' => 'Cashier Satu',
+                            'email' => 'cashier@satriapos.com',
+                            'role' => 'cashier',
+                            'role_label' => 'Cashier'
+                        ]
+                    ]
+                )
+            )
+        ]
+    )]
     public function store(StoreUserRequest $request)
     {
         $validated = $request->validated();
@@ -36,17 +91,74 @@ class UserController extends Controller
         return new UserResource($user);
     }
 
-    /**
-     * Display the specified resource.
-     */
+    #[OA\Get(
+        path: '/api/users/{user}',
+        summary: 'Get User Details',
+        security: [['bearerAuth' => []]],
+        tags: ['User Management'],
+        parameters: [
+            new OA\Parameter(name: 'user', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'User details',
+                content: new OA\JsonContent(
+                    example: [
+                        'data' => [
+                            'id' => 1,
+                            'name' => 'Admin User',
+                            'email' => 'admin@satriapos.com',
+                            'role' => 'super_admin',
+                            'role_label' => 'Super Admin'
+                        ]
+                    ]
+                )
+            )
+        ]
+    )]
     public function show(User $user)
     {
         return new UserResource($user);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    #[OA\Put(
+        path: '/api/users/{user}',
+        summary: 'Update User',
+        security: [['bearerAuth' => []]],
+        tags: ['User Management'],
+        parameters: [
+            new OA\Parameter(name: 'user', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'name', type: 'string'),
+                    new OA\Property(property: 'email', type: 'string', format: 'email'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password', nullable: true),
+                    new OA\Property(property: 'role', type: 'string', enum: ['super_admin', 'cashier'])
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'User updated',
+                content: new OA\JsonContent(
+                    example: [
+                        'data' => [
+                            'id' => 1,
+                            'name' => 'Admin Updated',
+                            'email' => 'admin@satriapos.com',
+                            'role' => 'super_admin',
+                            'role_label' => 'Super Admin'
+                        ]
+                    ]
+                )
+            )
+        ]
+    )]
     public function update(UpdateUserRequest $request, User $user)
     {
         $validated = $request->validated();
@@ -62,9 +174,19 @@ class UserController extends Controller
         return new UserResource($user);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    #[OA\Delete(
+        path: '/api/users/{user}',
+        summary: 'Delete User',
+        security: [['bearerAuth' => []]],
+        tags: ['User Management'],
+        parameters: [
+            new OA\Parameter(name: 'user', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 204, description: 'User deleted'),
+            new OA\Response(response: 403, description: 'Cannot delete current user')
+        ]
+    )]
     public function destroy(User $user): JsonResponse
     {
         // Prevent users from deleting themselves
