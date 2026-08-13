@@ -37,7 +37,19 @@ class AuthController extends Controller
                         new OA\Property(
                             property: 'data',
                             properties: [
-                                new OA\Property(property: 'token', type: 'string', example: '1|xyztoken')
+                                new OA\Property(property: 'token', type: 'string', example: '1|xyztoken'),
+                                new OA\Property(
+                                    property: 'user',
+                                    properties: [
+                                        new OA\Property(property: 'id', type: 'integer', example: 1),
+                                        new OA\Property(property: 'name', type: 'string', example: 'Super Admin'),
+                                        new OA\Property(property: 'email', type: 'string', example: 'admin@satriapos.com'),
+                                        new OA\Property(property: 'foto_profile', type: 'string', nullable: true, example: 'profiles/abc.jpg'),
+                                        new OA\Property(property: 'role', type: 'string', example: 'super_admin'),
+                                        new OA\Property(property: 'role_label', type: 'string', example: 'Super Admin')
+                                    ],
+                                    type: 'object'
+                                )
                             ],
                             type: 'object'
                         )
@@ -61,7 +73,8 @@ class AuthController extends Controller
         return response([
             "message" => "Logged in successfully.",
             "data"=>[
-                "token" =>$token
+                "token" =>$token,
+                "user" => new UserResource($user)
             ]
         ]);
     }

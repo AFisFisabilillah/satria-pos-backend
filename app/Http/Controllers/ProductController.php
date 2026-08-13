@@ -114,7 +114,7 @@ class ProductController extends Controller
     {
         $data = $request->validated();
         $image = $request->file('image');
-        $path = null;
+        $path = 'public/empty.jpeg';
         if ($image) {
             $fileName = $request->code . "-" . Str::uuid() . "." . $image->getClientOriginalExtension();
             $path = $image->storeAs('images/products', $fileName, 'public');

@@ -64,6 +64,31 @@ class ProductControllerTest extends TestCase
             ->assertJsonMissing(['name' => 'Gula Pasir']);
     }
 
+    public function test_store_creates_new_product_without_image_uses_default(): void
+    {
+        $category1 = Category::factory()->create();
+
+        $payload = [
+            'name' => 'Kopi Tanpa Gambar',
+            'code' => 'KP-002',
+            'description' => 'Kopi tanpa gambar',
+            'active' => 1,
+            'unit_id' => $this->unit->id,
+            'sale_price' => 15000,
+            'category_ids' => [$category1->id],
+        ];
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->post('/api/products', $payload);
+
+        $response->assertCreated()
+            ->assertJsonFragment(['name' => 'Kopi Tanpa Gambar', 'code' => 'KP-002']);
+
+        $product = Product::where('code', 'KP-002')->first();
+        $this->assertNotNull($product);
+        $this->assertEquals('public/empty.jpeg', $product->image);
+    }
+
     public function test_store_creates_new_product_with_image(): void
     {
         $file = UploadedFile::fake()->image('product.jpg');
@@ -111,7 +136,7 @@ class ProductControllerTest extends TestCase
             ->postJson('/api/products', []);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['name', 'code', 'image', 'unit_id', 'sale_price', 'category_ids']);
+            ->assertJsonValidationErrors(['name', 'code', 'unit_id', 'sale_price', 'category_ids']);
     }
 
     public function test_store_validation_fails_with_invalid_image(): void

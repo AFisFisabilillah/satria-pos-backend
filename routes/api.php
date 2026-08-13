@@ -56,7 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Products (Write)
         Route::post('/products', [ProductController::class, 'store']);
-        Route::put('/products/{product}', [ProductController::class, 'update']);
+        Route::post('/products/{product}', [ProductController::class, 'update']);
         Route::delete('/products/{product}', [ProductController::class, 'destroy']);
         Route::patch('/products/{product}/toggle-active', [ProductController::class, 'toggleActive']);
         Route::post('/products/bulk-toggle-active', [ProductController::class, 'bulkToggleActive']);
