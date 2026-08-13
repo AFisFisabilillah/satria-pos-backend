@@ -114,16 +114,15 @@ class ProductController extends Controller
     {
         $data = $request->validated();
         $image = $request->file('image');
-        $path = 'public/empty.jpeg';
+        $path = null;
         if ($image) {
             $fileName = $request->code . "-" . Str::uuid() . "." . $image->getClientOriginalExtension();
             $path = $image->storeAs('images/products', $fileName, 'public');
         }
-        $slug = Str::slug($request->name, '-');
         $product = Product::create([
             "name" => $request->name,
             "code" => $request->code,
-            "slug" => $slug,
+            "slug" => Str::slug($request->name . '-' . $request->code, '-'),
             "description" => $request->description,
             "image" => $path,
             "active" => $request->active,
