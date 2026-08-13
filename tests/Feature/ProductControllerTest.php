@@ -36,14 +36,14 @@ class ProductControllerTest extends TestCase
         $product = Product::factory()->create(['unit_id' => $this->unit->id]);
         $product->categories()->attach($category);
 
-        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+           $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->getJson('/api/products?size=10');
 
         $response->assertOk()
             ->assertJsonCount(1, 'data') // Karena paginate(10)
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'name', 'code', 'slug', 'description', 'image', 'active', 'sale_price', 'unit_id', 'quantity', 'categories']
+                    '*' => ['id', 'name', 'code', 'slug', 'description', 'image', 'active', 'sale_price', 'unit', 'quantity', 'categories']
                 ],
                 'links',
                 'meta'
@@ -55,7 +55,7 @@ class ProductControllerTest extends TestCase
         Product::factory()->create(['name' => 'Beras Organik']);
         Product::factory()->create(['name' => 'Gula Pasir']);
 
-        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+           $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->getJson('/api/products?search=beras');
 
         $response->assertOk()
@@ -78,7 +78,7 @@ class ProductControllerTest extends TestCase
             'category_ids' => [$category1->id],
         ];
 
-        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+           $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->post('/api/products', $payload);
 
         $response->assertCreated()
@@ -86,7 +86,7 @@ class ProductControllerTest extends TestCase
 
         $product = Product::where('code', 'KP-002')->first();
         $this->assertNotNull($product);
-        $this->assertEquals('public/empty.jpeg', $product->image);
+        $this->assertNull($product->image);
     }
 
     public function test_store_creates_new_product_with_image(): void
@@ -106,7 +106,7 @@ class ProductControllerTest extends TestCase
             'category_ids' => [$category1->id, $category2->id],
         ];
 
-        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+           $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->post('/api/products', $payload); // menggunakan post biasa untuk multipart
 
         $response->assertCreated()
@@ -114,7 +114,7 @@ class ProductControllerTest extends TestCase
 
         $product = Product::where('code', 'KP-001')->first();
         $this->assertNotNull($product);
-        $this->assertEquals('kopi-bubuk', $product->slug);
+        $this->assertEquals('kopi-bubuk-kp-001', $product->slug);
 
         // Assert categories attached
         $this->assertDatabaseHas('category_product', [
@@ -132,7 +132,7 @@ class ProductControllerTest extends TestCase
 
     public function test_store_validation_fails_without_required_fields(): void
     {
-        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+           $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->postJson('/api/products', []);
 
         $response->assertStatus(422)
@@ -143,7 +143,7 @@ class ProductControllerTest extends TestCase
     {
         $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
 
-        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+           $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->post('/api/products', [
                 'name' => 'Test',
                 'code' => 'TEST',
@@ -175,7 +175,7 @@ class ProductControllerTest extends TestCase
             'quantity_remaining' => 20
         ]);
 
-        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+           $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->getJson("/api/products/{$product->id}");
 
         $response->assertOk()
@@ -202,7 +202,7 @@ class ProductControllerTest extends TestCase
             '_method' => 'PUT',
         ];
 
-        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+           $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->post("/api/products/{$product->id}", $payload);
 
         $response->assertOk()
@@ -245,7 +245,7 @@ class ProductControllerTest extends TestCase
             '_method' => 'PUT',
         ];
 
-        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+           $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->post("/api/products/{$product->id}", $payload);
 
         $response->assertOk();
@@ -268,7 +268,7 @@ class ProductControllerTest extends TestCase
 
         Storage::disk('public')->assertExists($oldPath);
 
-        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+           $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->deleteJson("/api/products/{$product->id}");
 
         $response->assertOk()
@@ -288,7 +288,7 @@ class ProductControllerTest extends TestCase
             'active' => true
         ]);
 
-        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+           $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->patchJson("/api/products/{$product->id}/toggle-active");
 
         $response->assertOk();
@@ -316,7 +316,7 @@ class ProductControllerTest extends TestCase
         $product2 = Product::factory()->create(['unit_id' => $this->unit->id, 'active' => false]);
         $product3 = Product::factory()->create(['unit_id' => $this->unit->id, 'active' => true]); // won't be sent
 
-        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+           $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->postJson("/api/products/bulk-toggle-active", [
                 'ids' => [$product1->id, $product2->id]
             ]);

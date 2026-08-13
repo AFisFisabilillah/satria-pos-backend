@@ -22,7 +22,7 @@ class ProductResource extends JsonResource
             'sale_price' => $this->sale_price,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'unit_id' => $this->unit,
+            'unit' => $this->unit,
             'quantity' => (int) $this->stock_supply_items_sum_quantity_remaining,
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
         ];
