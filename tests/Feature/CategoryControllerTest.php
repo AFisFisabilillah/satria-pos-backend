@@ -84,6 +84,38 @@ class CategoryControllerTest extends TestCase
             ->assertJsonValidationErrors(['name']);
     }
 
+    public function test_update_category(): void
+    {
+        $category = Category::factory()->create(['name' => 'Makanan']);
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->patchJson("/api/categories/{$category->id}", ['name' => 'Minuman']);
+
+        $response->assertOk()
+            ->assertJsonFragment(['name' => 'Minuman']);
+
+        $this->assertDatabaseHas('categories', ['id' => $category->id, 'name' => 'Minuman']);
+    }
+
+    public function test_update_category_validation_fails_without_name(): void
+    {
+        $category = Category::factory()->create();
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->patchJson("/api/categories/{$category->id}", []);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_update_category_returns_404_if_not_found(): void
+    {
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->patchJson('/api/categories/999', ['name' => 'Minuman']);
+
+        $response->assertNotFound();
+    }
+
     public function test_destroy_deletes_category(): void
     {
         $category = Category::factory()->create();

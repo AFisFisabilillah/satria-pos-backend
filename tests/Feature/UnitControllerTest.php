@@ -32,7 +32,7 @@ class UnitControllerTest extends TestCase
             ->getJson('/api/units?search=gram');
 
         $response->assertOk()
-            ->assertJsonCount(2) // Kilogram, Gram
+            ->assertJsonCount(2, 'data') // Kilogram, Gram
             ->assertJsonFragment(['name' => 'Kilogram'])
             ->assertJsonFragment(['name' => 'Gram'])
             ->assertJsonMissing(['name' => 'Liter']);
@@ -66,6 +66,38 @@ class UnitControllerTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_update_unit(): void
+    {
+        $unit = Unit::factory()->create(['name' => 'Pcs']);
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->patchJson("/api/units/{$unit->id}", ['name' => 'Box']);
+
+        $response->assertOk()
+            ->assertJsonFragment(['name' => 'Box']);
+
+        $this->assertDatabaseHas('units', ['id' => $unit->id, 'name' => 'Box']);
+    }
+
+    public function test_update_unit_validation_fails_without_name(): void
+    {
+        $unit = Unit::factory()->create();
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->patchJson("/api/units/{$unit->id}", []);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_update_unit_returns_404_if_not_found(): void
+    {
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->patchJson('/api/units/999', ['name' => 'Box']);
+
+        $response->assertNotFound();
     }
 
     public function test_destroy_deletes_unit(): void
