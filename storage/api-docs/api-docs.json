@@ -342,6 +342,44 @@
             }
         },
         "/api/categories/{category}": {
+            "post": {
+                "tags": [
+                    "Category"
+                ],
+                "summary": "Create Category",
+                "operationId": "683621a56362beb1f73f80cda349f999",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Category created",
+                        "content": {
+                            "application/json": {
+                                "schema": {},
+                                "example": {
+                                    "data": {
+                                        "id": 3,
+                                        "name": "Snack"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "delete": {
                 "tags": [
                     "Category"
@@ -1568,7 +1606,10 @@
                                             "id": 1,
                                             "name": "PT Suplier ABC",
                                             "phone": "08123456789",
-                                            "address": "Jl. Merdeka No 1"
+                                            "address": "Jl. Merdeka No 1",
+                                            "city": "Bekasi",
+                                            "province": "jawa barat",
+                                            "postal_code": "17152"
                                         }
                                     ],
                                     "links": {
@@ -1616,6 +1657,15 @@
                                     },
                                     "address": {
                                         "type": "string"
+                                    },
+                                    "city": {
+                                        "type": "string"
+                                    },
+                                    "province": {
+                                        "type": "string"
+                                    },
+                                    "postal_code": {
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -1634,7 +1684,10 @@
                                         "id": 1,
                                         "name": "PT Suplier ABC",
                                         "phone": "08123456789",
-                                        "address": "Jl. Merdeka No 1"
+                                        "address": "Jl. Merdeka No 1",
+                                        "city": "Bekasi",
+                                        "province": "jawa barat",
+                                        "postal_code": "17152"
                                     }
                                 }
                             }
@@ -1676,7 +1729,10 @@
                                         "id": 1,
                                         "name": "PT Suplier ABC",
                                         "phone": "08123456789",
-                                        "address": "Jl. Merdeka No 1"
+                                        "address": "Jl. Merdeka No 1",
+                                        "city": "Bekasi",
+                                        "province": "jawa barat",
+                                        "postal_code": "17152"
                                     }
                                 }
                             }
@@ -1719,6 +1775,15 @@
                                     },
                                     "address": {
                                         "type": "string"
+                                    },
+                                    "city": {
+                                        "type": "string"
+                                    },
+                                    "province": {
+                                        "type": "string"
+                                    },
+                                    "postal_code": {
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -1737,7 +1802,10 @@
                                         "id": 1,
                                         "name": "PT Suplier ABC",
                                         "phone": "08123456789",
-                                        "address": "Jl. Merdeka No 1 Updated"
+                                        "address": "Jl. Merdeka No 1 Updated",
+                                        "city": "Bekasi",
+                                        "province": "jawa barat",
+                                        "postal_code": "17152"
                                     }
                                 }
                             }
@@ -2287,9 +2355,7 @@
                                 "schema": {},
                                 "example": {
                                     "id": 3,
-                                    "name": "Lusin",
-                                    "created_at": "2026-08-06T10:00:00.000000Z",
-                                    "updated_at": "2026-08-06T10:00:00.000000Z"
+                                    "name": "Lusin"
                                 }
                             }
                         }
@@ -2303,6 +2369,44 @@
             }
         },
         "/api/units/{unit}": {
+            "post": {
+                "tags": [
+                    "Unit"
+                ],
+                "summary": "Update Unit",
+                "operationId": "c8303b0f61dd968bda8a0ba69d184163",
+                "parameters": [
+                    {
+                        "name": "unit",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Unit created",
+                        "content": {
+                            "application/json": {
+                                "schema": {},
+                                "example": {
+                                    "data": {
+                                        "id": 1,
+                                        "name": "Pcs"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "delete": {
                 "tags": [
                     "Unit"

@@ -27,7 +27,7 @@ class SuplierController extends Controller
                 content: new OA\JsonContent(
                     example: [
                         'data' => [
-                            ['id' => 1, 'name' => 'PT Suplier ABC', 'phone' => '08123456789', 'address' => 'Jl. Merdeka No 1']
+                            ['id' => 1, 'name' => 'PT Suplier ABC', 'phone' => '08123456789', 'address' => 'Jl. Merdeka No 1', "city"=>"Bekasi", "province"=>"jawa barat", "postal_code"=>"17152"]
                         ],
                         'links' => ['first' => '...', 'last' => '...'],
                         'meta' => ['current_page' => 1, 'per_page' => 10, 'total' => 1]
@@ -67,7 +67,10 @@ class SuplierController extends Controller
                 properties: [
                     new OA\Property(property: 'name', type: 'string'),
                     new OA\Property(property: 'phone', type: 'string'),
-                    new OA\Property(property: 'address', type: 'string')
+                    new OA\Property(property: 'address', type: 'string'),
+                    new OA\Property(property: 'city', type: 'string'),
+                    new OA\Property(property: 'province', type: 'string'),
+                    new OA\Property(property: 'postal_code', type: 'string'),
                 ]
             )
         ),
@@ -76,7 +79,7 @@ class SuplierController extends Controller
                 response: 201,
                 description: 'Supplier created',
                 content: new OA\JsonContent(
-                    example: ['data' => ['id' => 1, 'name' => 'PT Suplier ABC', 'phone' => '08123456789', 'address' => 'Jl. Merdeka No 1']]
+                    example: ['data' => ['id' => 1, 'name' => 'PT Suplier ABC', 'phone' => '08123456789', 'address' => 'Jl. Merdeka No 1',"city"=>"Bekasi", "province"=>"jawa barat", "postal_code"=>"17152"]]
                 )
             )
         ]
@@ -101,7 +104,7 @@ class SuplierController extends Controller
                 response: 200,
                 description: 'Supplier details',
                 content: new OA\JsonContent(
-                    example: ['data' => ['id' => 1, 'name' => 'PT Suplier ABC', 'phone' => '08123456789', 'address' => 'Jl. Merdeka No 1']]
+                    example: ['data' => ['id' => 1, 'name' => 'PT Suplier ABC', 'phone' => '08123456789', 'address' => 'Jl. Merdeka No 1',"city"=>"Bekasi", "province"=>"jawa barat", "postal_code"=>"17152"]]
                 )
             )
         ]
@@ -125,7 +128,10 @@ class SuplierController extends Controller
                 properties: [
                     new OA\Property(property: 'name', type: 'string'),
                     new OA\Property(property: 'phone', type: 'string'),
-                    new OA\Property(property: 'address', type: 'string')
+                    new OA\Property(property: 'address', type: 'string'),
+                    new OA\Property(property: 'city', type: 'string'),
+                    new OA\Property(property: 'province', type: 'string'),
+                    new OA\Property(property: 'postal_code', type: 'string'),
                 ]
             )
         ),
@@ -134,7 +140,7 @@ class SuplierController extends Controller
                 response: 200,
                 description: 'Supplier updated',
                 content: new OA\JsonContent(
-                    example: ['data' => ['id' => 1, 'name' => 'PT Suplier ABC', 'phone' => '08123456789', 'address' => 'Jl. Merdeka No 1 Updated']]
+                    example: ['data' => ['id' => 1, 'name' => 'PT Suplier ABC', 'phone' => '08123456789', 'address' => 'Jl. Merdeka No 1 Updated', "city"=>"Bekasi", "province"=>"jawa barat", "postal_code"=>"17152"]]
                 )
             )
         ]
@@ -162,7 +168,9 @@ class SuplierController extends Controller
     {
         $suplier->delete();
 
-        return response()->json();
+        return response()->json([
+            "message" => "success delete suplier"
+        ]);
     }
 
     #[OA\Post(
@@ -192,6 +200,8 @@ class SuplierController extends Controller
 
         Suplier::whereIn('id', $request->ids)->delete();
 
-        return response()->json();
+        return response()->json([
+            "message" => "success delete suplier"
+        ]);
     }
 }
