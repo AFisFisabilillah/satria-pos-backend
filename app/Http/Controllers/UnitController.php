@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UnitRequest;
+use App\Http\Resources\UnitResource;
 use App\Models\Unit;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -38,7 +39,7 @@ class UnitController extends Controller
         $unit = Unit::when($search, function (Builder $query) use ($search) {
             return $query->where('name', 'like', '%' . $search . '%');
         })->paginate($size);
-        return $unit;
+        return UnitResource::collection($unit);
     }
 
     #[OA\Post(
@@ -67,7 +68,8 @@ class UnitController extends Controller
     )]
     public function store(UnitRequest $request)
     {
-        return Unit::create($request->validated());
+        $unit = Unit::firstOrCreate(['name' => $request->name]);
+        return new UnitResource($unit);
     }
 
     #[OA\Delete(
