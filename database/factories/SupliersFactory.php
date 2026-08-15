@@ -17,7 +17,7 @@ class SupliersFactory extends Factory
             'phone' => $this->faker->phoneNumber(),
             'city' => $this->faker->city(),
             'province' => $this->faker->word(),
-            'adress' => $this->faker->word(),
+            'address' => $this->faker->word(),
             'postal_code' => $this->faker->postcode(),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),

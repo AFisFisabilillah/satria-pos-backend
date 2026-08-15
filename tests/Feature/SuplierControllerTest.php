@@ -33,7 +33,7 @@ class SuplierControllerTest extends TestCase
             ->assertJsonCount(10, 'data')
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'name', 'phone', 'city', 'province', 'adress', 'postal_code']
+                    '*' => ['id', 'name', 'phone', 'city', 'province', 'address', 'postal_code']
                 ],
                 'links',
                 'meta'
@@ -75,7 +75,7 @@ class SuplierControllerTest extends TestCase
             'phone' => '08111222333',
             'city' => 'Jakarta Selatan',
             'province' => 'DKI Jakarta',
-            'adress' => 'Jalan Jendral Sudirman No. 1',
+            'address' => 'Jalan Jendral Sudirman No. 1',
             'postal_code' => '12190',
         ];
 
@@ -97,7 +97,7 @@ class SuplierControllerTest extends TestCase
             ->postJson('/api/supliers', []);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['name', 'phone', 'city', 'province', 'adress', 'postal_code']);
+            ->assertJsonValidationErrors(['name', 'phone', 'city', 'province', 'address', 'postal_code']);
     }
 
     public function test_show_returns_suplier(): void
@@ -120,7 +120,7 @@ class SuplierControllerTest extends TestCase
             'phone' => '08111222333',
             'city' => 'Jakarta',
             'province' => 'DKI Jakarta',
-            'adress' => 'Jalan Baru',
+            'address' => 'Jalan Baru',
             'postal_code' => '12345',
         ];
 

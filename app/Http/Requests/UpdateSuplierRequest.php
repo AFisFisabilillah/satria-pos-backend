@@ -27,7 +27,7 @@ class UpdateSuplierRequest extends FormRequest
             'phone' => ['required', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:255'],
             'province' => ['required', 'string', 'max:255'],
-            'adress' => ['required', 'string', 'max:255'],
+            'address' => ['required', 'string', 'max:255'],
             'postal_code' => ['required', 'string', 'max:20'],
         ];
     }

@@ -22,7 +22,7 @@ class SuplierFactory extends Factory
             'phone' => $this->faker->e164PhoneNumber(),
             'city' => $this->faker->city(),
             'province' => $this->faker->state(),
-            'adress' => $this->faker->streetAddress(),
+            'address' => $this->faker->streetAddress(),
             'postal_code' => $this->faker->postcode(),
         ];
     }
