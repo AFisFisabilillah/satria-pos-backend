@@ -61,7 +61,7 @@ class UnitController extends Controller
                 response: 201,
                 description: 'Unit created',
                 content: new OA\JsonContent(
-                    example: ['id' => 3, 'name' => 'Lusin', 'created_at' => '2026-08-06T10:00:00.000000Z', 'updated_at' => '2026-08-06T10:00:00.000000Z']
+                    example: ['id' => 3, 'name' => 'Lusin']
                 )
             )
         ]
@@ -69,6 +69,32 @@ class UnitController extends Controller
     public function store(UnitRequest $request)
     {
         $unit = Unit::firstOrCreate(['name' => $request->name]);
+        return new UnitResource($unit);
+    }
+
+    #[OA\Post(
+        path: '/api/units/{unit}',
+        summary: 'Update Unit',
+        security: [['bearerAuth' => []]],
+        tags: ['Unit'],
+        parameters: [
+            new OA\Parameter(name: 'unit', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Unit created',
+                content: new OA\JsonContent(
+                    example: ["data" => [
+                        'id' => 1, 'name' => 'Pcs'
+                    ]]
+                )
+            )
+        ]
+    )]
+    public function update(Unit $unit, UnitRequest $request){
+        $unit->name = $request->name;
+        $unit->save();
         return new UnitResource($unit);
     }
 
