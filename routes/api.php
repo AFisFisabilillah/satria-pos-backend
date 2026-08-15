@@ -49,7 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Categories (Write)
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
-
+        Route::patch('/categories/{category}', [CategoryController::class, 'update']);
         // Units (Write)
         Route::post('/units', [UnitController::class, 'store']);
         Route::delete('/units/{unit}', [UnitController::class, 'destroy']);

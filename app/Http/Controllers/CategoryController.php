@@ -35,7 +35,7 @@ class CategoryController extends Controller
     public function index()
     {
         $search = request()->query('search');
-        $size = request()->query('size',5);
+        $size = request()->query('size', 5);
 
         $categories = Category::when($search, function ($query, $search) {
             $query->where("name", "like", "%{$search}%");
@@ -69,7 +69,31 @@ class CategoryController extends Controller
     )]
     public function store(CategoryRequest $request)
     {
-        return new CategoryResource(Category::create($request->validated()));
+        return new CategoryResource(Category::firstOrCreate($request->validated()));
+    }
+
+    #[OA\Post(
+        path: '/api/categories/{category}',
+        summary: 'Create Category',
+        security: [['bearerAuth' => []]],
+        tags: ['Category'],
+        parameters: [
+            new OA\Parameter(name: 'category', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Category created',
+                content: new OA\JsonContent(
+                    example: ['data' => ['id' => 3, 'name' => 'Snack']]
+                )
+            )
+        ]
+    )]
+    public function update(CategoryRequest $request, Category $category)
+    {
+        $category->update($request->validated());
+        return new CategoryResource($category);
     }
 
     #[OA\Delete(
