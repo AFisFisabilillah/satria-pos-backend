@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UnitRequest;
 use App\Models\Unit;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
@@ -33,7 +34,11 @@ class UnitController extends Controller
     public function index(Request $request)
     {
         $search = $request->search;
-        return Unit::where('name', 'like', '%' . $search . '%')->limit(5)->get();
+        $size= $request->query("size", 5);
+        $unit = Unit::when($search, function (Builder $query) use ($search) {
+            return $query->where('name', 'like', '%' . $search . '%');
+        })->paginate($size);
+        return $unit;
     }
 
     #[OA\Post(

@@ -35,11 +35,11 @@ class CategoryController extends Controller
     public function index()
     {
         $search = request()->query('search');
-        if ($search) {
-            $categories = Category::select("id", "name")->where('name', 'like', '%' . $search . '%')->limit(5)->get();
-        } else {
-            $categories = Category::select("id", "name")->limit(5)->get();
-        }
+        $size = request()->query('size',5);
+
+        $categories = Category::when($search, function ($query, $search) {
+            $query->where("name", "like", "%{$search}%");
+        })->paginate($size);
         return CategoryResource::collection($categories);
     }
 

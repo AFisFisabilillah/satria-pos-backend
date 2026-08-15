@@ -199,7 +199,6 @@ class ProductControllerTest extends TestCase
             'unit_id' => $this->unit->id,
             'sale_price' => 20000,
             'category_ids' => [$newCategory->id],
-            '_method' => 'PUT',
         ];
 
            $response = $this->withHeader('Authorization', "Bearer {$this->token}")
@@ -242,7 +241,6 @@ class ProductControllerTest extends TestCase
             'sale_price' => 50000,
             'image' => $newFile,
             'category_ids' => [$category->id],
-            '_method' => 'PUT',
         ];
 
            $response = $this->withHeader('Authorization', "Bearer {$this->token}")
