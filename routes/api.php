@@ -38,6 +38,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/voucher/{voucher}', [VoucherController::class, 'show']);
 
         // Members (Cashier can manage at POS)
+        Route::patch('/members/{member}/toggle-active', [\App\Http\Controllers\MemberController::class, 'toggleActive']);
+        Route::patch('/members/bulk-toggle-active', [\App\Http\Controllers\MemberController::class, 'bulkToggleMember']);
         Route::apiResource('members', \App\Http\Controllers\MemberController::class);
     });
 

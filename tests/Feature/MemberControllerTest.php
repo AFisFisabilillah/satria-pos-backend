@@ -151,4 +151,45 @@ class MemberControllerTest extends TestCase
 
         $this->assertDatabaseMissing('members', ['id' => $member->id]);
     }
+
+    public function test_toggle_active_toggles_member_status(): void
+    {
+        $member = Member::factory()->create(['active' => true]);
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->patchJson("/api/members/{$member->id}/toggle-active");
+
+        $response->assertOk()
+            ->assertJsonFragment(['active' => false]);
+
+        $this->assertDatabaseHas('members', ['id' => $member->id, 'active' => false]);
+
+        $response2 = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->patchJson("/api/members/{$member->id}/toggle-active");
+
+        $response2->assertOk()
+            ->assertJsonFragment(['active' => true]);
+
+        $this->assertDatabaseHas('members', ['id' => $member->id, 'active' => true]);
+    }
+
+    public function test_bulk_toggle_active_toggles_members_status(): void
+    {
+        $member1 = Member::factory()->create(['active' => true]);
+        $member2 = Member::factory()->create(['active' => false]);
+        $member3 = Member::factory()->create(['active' => true]);
+
+        $payload = [
+            'ids' => [$member1->id, $member2->id, $member3->id]
+        ];
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->patchJson("/api/members/bulk-toggle-active", $payload);
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('members', ['id' => $member1->id, 'active' => false]);
+        $this->assertDatabaseHas('members', ['id' => $member2->id, 'active' => true]);
+        $this->assertDatabaseHas('members', ['id' => $member3->id, 'active' => false]);
+    }
 }

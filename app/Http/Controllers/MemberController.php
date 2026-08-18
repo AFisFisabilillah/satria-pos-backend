@@ -229,4 +229,24 @@ class MemberController extends Controller
             'message' => 'Member deleted successfully.'
         ]);
     }
+
+    public function toggleActive(Member $member){
+        $member->active = !$member->active;
+        $member->save();
+        return new MemberResource($member);
+    }
+
+    public function bulkToggleMember(Request $request ){
+        $request->validate([
+            "ids" => "required|array",
+            "ids.*" => "required|exists:members,id",
+        ]);
+
+        Member::whereIn("id", $request->ids)->update([
+            "active" => \DB::raw("NOT active"),
+        ]);
+        return response()->json([
+            "message" => "Member activated."
+        ]);
+    }
 }
