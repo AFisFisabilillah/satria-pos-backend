@@ -111,7 +111,7 @@ class SuplierController extends Controller
     )]
     public function show(Suplier $suplier)
     {
-        return new SuplierResource($suplier);
+        return new SuplierResource($suplier->load(['stockSupplies']));
     }
 
     #[OA\Put(
