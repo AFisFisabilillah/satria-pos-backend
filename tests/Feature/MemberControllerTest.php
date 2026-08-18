@@ -43,7 +43,7 @@ class MemberControllerTest extends TestCase
         Member::factory()->create(['name' => 'Andi Wijaya']);
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
-            ->getJson('/api/members?name=budi');
+            ->getJson('/api/members?search=budi');
 
         $response->assertOk()
             ->assertJsonCount(1, 'data')
@@ -57,7 +57,7 @@ class MemberControllerTest extends TestCase
         Member::factory()->create(['member_code' => 'MEM-002']);
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
-            ->getJson('/api/members?member_code=001');
+            ->getJson('/api/members?search=001');
 
         $response->assertOk()
             ->assertJsonCount(1, 'data')

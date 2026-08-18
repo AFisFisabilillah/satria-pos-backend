@@ -61,7 +61,7 @@ class MemberController extends Controller
         $query->when($search, function ($q, $search) {
             $q
                 ->where('name', 'like', "%{$search}%")
-                ->where("member_code", "like", "%{$search}%");
+                ->orWhere("member_code", "like", "%{$search}%");
         });
 
         $query->when($active !== null, function ($q) use ($active) {
