@@ -19,7 +19,7 @@ class DetailStockSupplyResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'suplier' => new SuplierResource($this->suplier),
-            "items" => new StockSupplyItemResource($this->stockSupplyItem)
+            "items" => StockSupplyItemResource::collection($this->stockSupplyItem)
         ];
     }
 }
