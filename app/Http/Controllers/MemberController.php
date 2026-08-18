@@ -50,8 +50,7 @@ class MemberController extends Controller
     )]
     public function index(Request $request)
     {
-        $name = $request->query('name');
-        $memberCode = $request->query('member_code');
+        $search = $request->query('search');
         $active = $request->query('active');
         $minTotalSpent = $request->query('min_total_spent');
         $maxTotalSpent = $request->query('max_total_spent');
@@ -59,12 +58,10 @@ class MemberController extends Controller
 
         $query = Member::query();
 
-        $query->when($name, function ($q, $name) {
-            $q->where('name', 'like', "%{$name}%");
-        });
-
-        $query->when($memberCode, function ($q, $memberCode) {
-            $q->where('member_code', 'like', "%{$memberCode}%");
+        $query->when($search, function ($q, $search) {
+            $q
+                ->where('name', 'like', "%{$search}%")
+                ->where("member_code", "like", "%{$search}%");
         });
 
         $query->when($active !== null, function ($q) use ($active) {
