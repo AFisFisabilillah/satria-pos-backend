@@ -19,6 +19,8 @@ class StockSupplyResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'suplier' => $this->suplier->name,
+            'total_items_quantity' => $this->whenLoaded('stockSupplyItem', fn () => $this->stockSupplyItem->sum('quantity_in')),
+            'total_item_types' => $this->whenLoaded('stockSupplyItem', fn () => $this->stockSupplyItem->count()),
         ];
     }
 }

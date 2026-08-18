@@ -26,7 +26,13 @@ class StockSupplyControllerTest extends TestCase
 
     public function test_index_returns_paginated_stock_supplies(): void
     {
-        StockSupply::factory()->count(15)->create();
+        $stockSupply = StockSupply::factory()->create();
+        StockSupplyItem::factory()->count(2)->create([
+            'stock_supply_id' => $stockSupply->id,
+            'quantity_in' => 50
+        ]);
+
+        StockSupply::factory()->count(14)->create();
 
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->getJson('/api/stock-supply?size=10');
@@ -35,7 +41,7 @@ class StockSupplyControllerTest extends TestCase
             ->assertJsonCount(10, 'data')
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'invoice_number', 'date', 'notes', 'suplier']
+                    '*' => ['id', 'invoice_number', 'date', 'notes', 'suplier', 'total_items_quantity', 'total_item_types']
                 ],
                 'links',
                 'meta'

@@ -63,7 +63,7 @@ class StockSupplyController extends Controller
             $query->where("date", "<=", $endDate);
         });
 
-        return StockSupplyResource::collection($stockSupply->with("suplier")->paginate($size));
+        return StockSupplyResource::collection($stockSupply->with(["suplier", "stockSupplyItem"])->paginate($size));
     }
 
     #[OA\Post(
@@ -169,7 +169,7 @@ class StockSupplyController extends Controller
         ]
     )]
     public function show(StockSupply $stockSupply){
-        $stockSupply->with(["stockSupplyItem", "suplier", 'stockSupplyItem.product']);
+        $stockSupply->load(["stockSupplyItem", "suplier", 'stockSupplyItem.product']);
         return new DetailStockSupplyResource($stockSupply);
     }
 

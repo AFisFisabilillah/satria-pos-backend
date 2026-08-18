@@ -19,7 +19,7 @@ class DetailSupplierResource extends JsonResource
             'province' => $this->province,
             'postal_code' => $this->postal_code,
             'address' => $this->address,
-            'stock_supply'=>StockSupplyResource::collection($this->stockSupplies)
+            'stock_suppliers'=>StockSupplyResource::collection($this->stockSupplies)
         ];
     }
 }

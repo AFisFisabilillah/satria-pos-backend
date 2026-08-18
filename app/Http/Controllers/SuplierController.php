@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSuplierRequest;
 use App\Http\Requests\UpdateSuplierRequest;
+use App\Http\Resources\DetailSupplierResource;
 use App\Http\Resources\SuplierResource;
 use App\Models\Suplier;
 use Illuminate\Http\Request;
@@ -111,7 +112,7 @@ class SuplierController extends Controller
     )]
     public function show(Suplier $suplier)
     {
-        return new SuplierResource($suplier->load(['stockSupplies']));
+        return new DetailSupplierResource($suplier->load(['stockSupplies','stockSupplies.stockSupplyItem']));
     }
 
     #[OA\Put(
