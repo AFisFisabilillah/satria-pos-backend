@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StockSupplyItemRequest;
+use App\Models\StockSupply;
 use App\Models\StockSupplyItem;
 use OpenApi\Attributes as OA;
 
@@ -34,4 +36,12 @@ class StockSupplyItemController extends Controller
             'message' => 'Item deleted successfully.'
         ]);
     }
+
+//    public function store(StockSupplyItemRequest $request){
+//        $data  = $request->validated();
+//        $stockSupply = StockSupplyItem::where("stock_supply_items.stock_supply_id", "=", $data["stock_supply_id"])->where("product_id","=", $data["product_id"])->first();
+//        if ($stockSupply) {
+//
+//        }
+//    }
 }

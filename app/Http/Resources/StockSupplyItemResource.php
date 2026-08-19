@@ -19,8 +19,11 @@ class StockSupplyItemResource extends JsonResource
             'expired_at' => $this->expired_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'product_id' => $this->product_id,
-            'product' => $this->product->name,
+            "product_summary"=>[
+                'id' => $this->product_id,
+                'name' => $this->product->name,
+                'image' => asset('storage/' . $this->product->image),
+            ]
         ];
     }
 }
