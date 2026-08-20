@@ -13,6 +13,7 @@ class UpdateVoucherRequest extends FormRequest
     {
         $id = $this->route('id');
         return [
+            'name' => ['required', 'string', 'max:255'],
             'code' => ['required','unique:vouchers,code,'.$id, 'regex:/^\S+$/'],
             'type' => ['required',new Enum(VoucherType::class)],
             'value' => [

@@ -35,6 +35,7 @@ class VoucherControllerTest extends TestCase
                 'data' => [
                     '*' => [
                         'id',
+                        'name',
                         'code',
                         'type',
                         'value',
@@ -78,6 +79,7 @@ class VoucherControllerTest extends TestCase
     public function test_store_creates_new_voucher(): void
     {
         $payload = [
+            'name' => 'Voucher Diskon',
             'code' => 'NEWVOUCHER',
             'type' => 'fixed',
             'value' => 50000,
@@ -99,18 +101,33 @@ class VoucherControllerTest extends TestCase
         ]);
     }
 
+    public function test_index_can_search_vouchers_by_name(): void
+    {
+        Voucher::factory()->create(['name' => 'Diskon Lebaran']);
+        Voucher::factory()->create(['name' => 'Promo Natal']);
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->getJson('/api/voucher?search=Diskon Lebaran');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data');
+
+        $this->assertEquals('Diskon Lebaran', $response->json('data.0.name'));
+    }
+
     public function test_store_validates_required_fields(): void
     {
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->postJson('/api/voucher', []);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['code', 'type', 'value', 'quota']);
+            ->assertJsonValidationErrors(['name', 'code', 'type', 'value', 'quota']);
     }
     
     public function test_store_validates_percent_type_value_limit(): void
     {
         $payload = [
+            'name' => 'Voucher Baru',
             'code' => 'PERCENT110',
             'type' => 'percent',
             'value' => 110,
@@ -144,6 +161,7 @@ class VoucherControllerTest extends TestCase
         ]);
 
         $payload = [
+            'name' => 'Updated Voucher',
             'code' => 'NEWCODE',
             'type' => 'fixed',
             'value' => 50000,

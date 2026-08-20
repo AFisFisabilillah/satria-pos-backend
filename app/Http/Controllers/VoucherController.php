@@ -35,18 +35,11 @@ class VoucherController extends Controller
                         'data' => [
                             [
                                 'id' => 1,
+                                'name' => 'Diskon Akhir Tahun',
                                 'code' => 'DISC20',
-                                'type' => 'fixed',
-                                'value' => 20000,
-                                'min_purchase' => 100000,
-                                'quota' => 50,
-                                'expired_at' => '2026-12-31',
-                                'active' => true
-                            ]
-                        ],
                         'links' => ['first' => '...', 'last' => '...'],
                         'meta' => ['current_page' => 1, 'per_page' => 10, 'total' => 1]
-                    ]
+                    ]]]
                 )
             )
         ]
@@ -79,7 +72,7 @@ class VoucherController extends Controller
             return $q->where('quota', '<=', $maxQuota);
         });
         $query->when($search, function ($q, $search) {
-            return $q->where('code', 'like', '%' . $search );
+            return $q->where('code', 'like', '%' . $search )->orWhere("name","=", $search);
         });
 
         return VoucherResource::collection($query->paginate($size));
@@ -93,8 +86,9 @@ class VoucherController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['code', 'type', 'value', 'quota', 'expired_at'],
+                required: ['name', 'code', 'type', 'value', 'quota', 'expired_at'],
                 properties: [
+                    new OA\Property(property: 'name', type: 'string'),
                     new OA\Property(property: 'code', type: 'string'),
                     new OA\Property(property: 'type', type: 'string', enum: ['fixed', 'percent']),
                     new OA\Property(property: 'value', type: 'integer'),
@@ -113,6 +107,7 @@ class VoucherController extends Controller
                     example: [
                         'data' => [
                             'id' => 1,
+                            'name' => 'Diskon Akhir Tahun',
                             'code' => 'DISC20',
                             'type' => 'fixed',
                             'value' => 20000,
@@ -147,6 +142,7 @@ class VoucherController extends Controller
                     example: [
                         'data' => [
                             'id' => 1,
+                            'name' => 'Diskon Akhir Tahun',
                             'code' => 'DISC20',
                             'type' => 'fixed',
                             'value' => 20000,
@@ -177,6 +173,7 @@ class VoucherController extends Controller
             required: true,
             content: new OA\JsonContent(
                 properties: [
+                    new OA\Property(property: 'name', type: 'string'),
                     new OA\Property(property: 'code', type: 'string'),
                     new OA\Property(property: 'type', type: 'string', enum: ['fixed', 'percent']),
                     new OA\Property(property: 'value', type: 'integer'),
@@ -195,6 +192,7 @@ class VoucherController extends Controller
                     example: [
                         'data' => [
                             'id' => 1,
+                            'name' => 'Diskon Akhir Tahun',
                             'code' => 'DISC20',
                             'type' => 'fixed',
                             'value' => 20000,

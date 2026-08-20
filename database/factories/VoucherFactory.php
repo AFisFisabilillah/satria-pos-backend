@@ -15,6 +15,7 @@ class VoucherFactory extends Factory
         $type = fake()->randomElement(['fixed', 'percent']);
 
         return [
+            'name' => $this->faker->words(2, true),
             'code' => $this->faker->unique()->word(),
             'type' => $type,
             'value' => $type === 'percent'
