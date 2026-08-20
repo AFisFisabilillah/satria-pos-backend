@@ -57,7 +57,9 @@ class ProductController extends Controller
         $search = request()->query('search');
         $size = request()->query('size', 10);
 
-        $productQuery = Product::query()->with(["unit", "categories"])->withSum('stockSupplyItems', 'quantity_remaining');
+        $productQuery = Product::query()
+            ->with(["unit", "categories"])
+            ->withSum('stockSupplyItems', 'quantity_remaining');
         $productQuery->when($search, function ($query, $search) {
             return $query->where('name', 'like', '%' . $search . '%');
         });
