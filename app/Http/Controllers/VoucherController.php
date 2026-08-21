@@ -72,7 +72,7 @@ class VoucherController extends Controller
             return $q->where('quota', '<=', $maxQuota);
         });
         $query->when($search, function ($q, $search) {
-            return $q->where('code', 'like', '%' . $search )->orWhere("name","=", $search);
+            return $q->where('code', 'like', '%' . $search )->orWhere("name","like", "%$search%");
         });
 
         return VoucherResource::collection($query->paginate($size));
