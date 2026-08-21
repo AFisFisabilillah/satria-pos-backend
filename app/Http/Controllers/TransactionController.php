@@ -283,22 +283,37 @@ class TransactionController extends Controller
         $search = request()->query('search');
         $startDate = request()->query('start_date');
         $endDate = request()->query('end_date');
+        $maxTotal = request()->query('max_total');
+        $minTotal = request()->query('min_total');
+        $payment = request()->query('payment_method');
+
         $size = request()->query("size",10);
+        $sortBy = request()->query("sort_by", "created_at");
+        $sortDirection = request()->query("sort_direction", "desc");
+
+        $allowedSorts = ['created_at', 'total_price'];
+        $sortBy = in_array($sortBy, $allowedSorts) ? $sortBy : 'created_at';
+        $direction = $sortDirection === 'asc' ? \SortDirection::Ascending : \SortDirection::Descending;
 
         $query = Transaction::query();
         $query->withCount("items");
 
-        $query->when($search, function ($query, $search) {
-           $query->where("invoice_number", "like", "%{$search}%");
-        });
-        $query->when($startDate, function ($query, $startDate) {
-            $query->where("created_at", ">=", $startDate);
-        });
-        $query->when($endDate, function ($query, $endDate) {
-            $query->where("created_at", "<=", $endDate);
-        });
+        $query
+            ->when($search, function ($query, $search) {
+                $query->where("invoice_number", "like", "%{$search}%");})
+            ->when($startDate, function ($query, $startDate) {
+                $query->where("created_at", ">=", $startDate);})
+            ->when($endDate, function ($query, $endDate) {
+                $query->where("created_at", "<=", $endDate);})
+            ->when($minTotal, function ($query, $minTotal) {
+                $query->where("total_price", ">=", $minTotal);})
+            ->when($maxTotal, function ($query, $maxTotal) {
+                $query->where("total_price", "<=", $maxTotal);})
+            ->when($payment, function ($query, $payment) {
+                $query->where("payment_method", "=", "{$payment}");
+            });
 
-        return TransactionResource::collection($query->paginate($size));
+        return TransactionResource::collection($query->orderBy("transactions.{$sortBy}", $direction)->paginate($size));
     }
 
     #[OA\Get(
