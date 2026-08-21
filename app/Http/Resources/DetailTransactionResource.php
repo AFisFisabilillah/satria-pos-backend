@@ -23,7 +23,8 @@ class DetailTransactionResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'items'=>TransactionItemResource::collection($this->items),
-            'member'=>$this->member ? new MemberResource($this->member) : null
+            'member'=>$this->member ? new MemberResource($this->member) : null,
+            'vouchers'=>$this->vouchers ?  VoucherResource::collection($this->vouchers) : null,
         ];
     }
 }

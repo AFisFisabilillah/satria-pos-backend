@@ -184,6 +184,34 @@ class TransactionControllerTest extends TestCase
             ]);
     }
 
+    public function test_index_sorts_by_created_at_ascending(): void
+    {
+        $older = Transaction::factory()->create(['created_at' => now()->subDays(2)]);
+        $newer = Transaction::factory()->create(['created_at' => now()->subDay()]);
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->getJson('/api/transactions?sort_by=created_at&sort_direction=asc');
+
+        $response->assertOk();
+        $data = $response->json('data');
+        $this->assertEquals($older->id, $data[0]['id']);
+        $this->assertEquals($newer->id, $data[1]['id']);
+    }
+
+    public function test_index_sorts_by_total_price_ascending(): void
+    {
+        $cheap = Transaction::factory()->create(['total_price' => 5000]);
+        $expensive = Transaction::factory()->create(['total_price' => 50000]);
+
+        $response = $this->withHeader('Authorization', "Bearer {$this->token}")
+            ->getJson('/api/transactions?sort_by=total_price&sort_direction=asc');
+
+        $response->assertOk();
+        $data = $response->json('data');
+        $this->assertEquals($cheap->id, $data[0]['id']);
+        $this->assertEquals($expensive->id, $data[1]['id']);
+    }
+
     public function test_show_returns_transaction_detail_with_items_relation(): void
     {
         $product = Product::factory()->create(['active' => true]);
