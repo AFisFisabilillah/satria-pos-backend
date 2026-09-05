@@ -63,7 +63,7 @@ class StockSupplyController extends Controller
             $query->where("date", "<=", $endDate);
         });
 
-        return StockSupplyResource::collection($stockSupply->with(["suplier", "stockSupplyItem"])->paginate($size));
+        return StockSupplyResource::collection($stockSupply->with(["suplier", "stockSupplyItem"])->orderBy("stock_supplies.created_at", \SortDirection::Descending)->paginate($size));
     }
 
     #[OA\Post(
