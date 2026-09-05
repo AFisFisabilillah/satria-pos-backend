@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MemberRequest;
+use App\Http\Resources\MemberDetailResource;
 use App\Http\Resources\MemberResource;
 use App\Models\Member;
 use Illuminate\Http\Request;
@@ -50,7 +51,7 @@ class MemberController extends Controller
     )]
     public function index(Request $request)
     {
-        $search = $request->query('search');
+        $search = $request->query('name');
         $active = $request->query('active');
         $minTotalSpent = $request->query('min_total_spent');
         $maxTotalSpent = $request->query('max_total_spent');
@@ -157,7 +158,7 @@ class MemberController extends Controller
     )]
     public function show(Member $member)
     {
-        return new MemberResource($member);
+        return new MemberDetailResource($member->load('transaction'));
     }
 
     #[OA\Put(
