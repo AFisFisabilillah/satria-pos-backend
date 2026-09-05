@@ -360,7 +360,7 @@ class TransactionController extends Controller
         ]
     )]
     public function show(Transaction $transaction){
-        $transaction->load(["items.product", "member"]);
+        $transaction->load(["items.product", "member", 'vouchers']);
         return new DetailTransactionResource($transaction);
 
     }
