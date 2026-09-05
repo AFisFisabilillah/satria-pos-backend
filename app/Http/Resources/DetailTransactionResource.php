@@ -27,4 +27,5 @@ class DetailTransactionResource extends JsonResource
             'vouchers'=>$this->vouchers ?  VoucherResource::collection($this->vouchers) : null,
         ];
     }
+
 }
