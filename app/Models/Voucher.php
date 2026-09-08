@@ -10,4 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 class Voucher extends Model
 {
     use HasFactory;
+
+    public function transactions()
+    {
+        return $this->belongsToMany(Transaction::class, 'transaction_voucher')
+            ->withPivot('discount_applied')
+            ->withTimestamps();
+    }
 }

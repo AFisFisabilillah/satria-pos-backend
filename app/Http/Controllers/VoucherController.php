@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateVoucherRequest;
 use App\Http\Requests\VoucherRequest;
+use App\Http\Resources\VoucherDetailResource;
 use App\Http\Resources\VoucherResource;
 use App\Models\Voucher;
 use Illuminate\Http\Request;
@@ -158,7 +159,7 @@ class VoucherController extends Controller
     )]
     public function show(Voucher $voucher)
     {
-        return new VoucherResource($voucher);
+        return new VoucherDetailResource($voucher->load("transactions"));
     }
 
     #[OA\Put(
