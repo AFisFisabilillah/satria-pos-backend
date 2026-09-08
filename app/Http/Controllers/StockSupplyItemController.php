@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StockSupplyItemRequest;
+use App\Http\Resources\StockSupplyItemResource;
 use App\Models\StockSupply;
 use App\Models\StockSupplyItem;
+use Illuminate\Database\Eloquent\Builder;
 use OpenApi\Attributes as OA;
 
 class StockSupplyItemController extends Controller
@@ -35,6 +37,24 @@ class StockSupplyItemController extends Controller
         return response()->json([
             'message' => 'Item deleted successfully.'
         ]);
+    }
+
+    public function index(){
+        $stockSupply = request()->query("stockSupply");
+        $search = request()->query("search");
+
+        $query = StockSupplyItem::query();
+        $query->when($stockSupply, function (Builder $query)use($stockSupply) {
+            $query->where("stock_supply_id", $stockSupply);
+        });
+
+        $query->when($search, function (Builder $query)use($search) {
+            $query->whereHas('product', function ($query) use ($search) {
+                $query->where("name", "like", "%{$search}%");
+            });
+        });
+
+        return StockSupplyItemResource::collection($query->get());
     }
 
 //    public function store(StockSupplyItemRequest $request){

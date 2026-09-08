@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockSupplyController;
+use App\Http\Controllers\StockSupplyItemController;
 use App\Http\Controllers\SuplierController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\VoucherController;
@@ -83,6 +84,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/voucher/{voucher}/toggle-active', [VoucherController::class, 'toggleActive']);
         Route::patch('/voucher/bulk-toggle-active', [VoucherController::class, 'bulkToggleActive']);
         // Supplier Returns (Write & Read)
+        Route::get("/stock-supply-items", [StockSupplyItemController::class, 'index']);
         Route::get('/supplier-returns', [\App\Http\Controllers\SupplierReturnController::class, 'index']);
         Route::post('/supplier-returns', [\App\Http\Controllers\SupplierReturnController::class, 'store']);
         Route::get('/supplier-returns/{supplierReturn}', [\App\Http\Controllers\SupplierReturnController::class, 'show']);
