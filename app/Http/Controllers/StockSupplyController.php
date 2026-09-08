@@ -49,6 +49,7 @@ class StockSupplyController extends Controller
         $startDate = request()->query('startDate');
         $endDate = request()->query('endDate');
         $size = request()->query('size',10);
+        $supplier = request()->query('supplier');
 
         $stockSupply = StockSupply::query();
         $stockSupply->when($search, function ($query, $search) {
@@ -62,7 +63,9 @@ class StockSupplyController extends Controller
         $stockSupply->when($endDate, function ($query, $endDate) {
             $query->where("date", "<=", $endDate);
         });
-
+        $stockSupply->when($supplier, function ($query, $supplier) {
+            $query->where('suplier_id', $supplier);
+        });
         return StockSupplyResource::collection($stockSupply->with(["suplier", "stockSupplyItem"])->orderBy("stock_supplies.created_at", \SortDirection::Descending)->paginate($size));
     }
 
