@@ -1178,6 +1178,196 @@
                 ]
             }
         },
+        "/api/stock-adjustments": {
+            "get": {
+                "tags": [
+                    "Stock Adjustment"
+                ],
+                "summary": "List Stock Adjustments",
+                "operationId": "535010a0e96813d0e95062ba659ebb42",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of stock adjustments",
+                        "content": {
+                            "application/json": {
+                                "schema": {},
+                                "example": {
+                                    "data": [
+                                        {
+                                            "id": 1,
+                                            "stock_supply_item_id": 10,
+                                            "user_id": 1,
+                                            "quantity": 5,
+                                            "type": "damaged",
+                                            "reason": "Kemasan rusak",
+                                            "created_at": "2026-09-08T09:00:00Z",
+                                            "updated_at": "2026-09-08T09:00:00Z"
+                                        }
+                                    ],
+                                    "links": {
+                                        "first": "...",
+                                        "last": "..."
+                                    },
+                                    "meta": {
+                                        "current_page": 1,
+                                        "per_page": 10,
+                                        "total": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Stock Adjustment"
+                ],
+                "summary": "Create Stock Adjustment",
+                "operationId": "86ce2846d9526c183a150bbd23daf6bd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "stock_supply_item_id",
+                                    "quantity",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "stock_supply_item_id": {
+                                        "type": "integer",
+                                        "example": 10
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "example": "damaged",
+                                        "enum": [
+                                            "damaged",
+                                            "expired",
+                                            "lost",
+                                            "other"
+                                        ]
+                                    },
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Kemasan rusak",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Stock adjustment created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {},
+                                "example": {
+                                    "data": {
+                                        "id": 1,
+                                        "stock_supply_item_id": 10,
+                                        "user_id": 1,
+                                        "quantity": 5,
+                                        "type": "damaged",
+                                        "reason": "Kemasan rusak",
+                                        "created_at": "2026-09-08T09:00:00Z",
+                                        "updated_at": "2026-09-08T09:00:00Z"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error or quantity exceeds remaining stock",
+                        "content": {
+                            "application/json": {
+                                "schema": {},
+                                "example": {
+                                    "message": "Quantity adjustment exceeds remaining stock quantity."
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/stock-adjustments/{stockAdjustment}": {
+            "get": {
+                "tags": [
+                    "Stock Adjustment"
+                ],
+                "summary": "Get Stock Adjustment Detail",
+                "operationId": "3c480b8b08d25c3806aa4185a4a20fa2",
+                "parameters": [
+                    {
+                        "name": "stockAdjustment",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Stock adjustment detail",
+                        "content": {
+                            "application/json": {
+                                "schema": {},
+                                "example": {
+                                    "data": {
+                                        "id": 1,
+                                        "stock_supply_item_id": 10,
+                                        "user_id": 1,
+                                        "quantity": 5,
+                                        "type": "damaged",
+                                        "reason": "Kemasan rusak",
+                                        "created_at": "2026-09-08T09:00:00Z",
+                                        "updated_at": "2026-09-08T09:00:00Z"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/stock-supply": {
             "get": {
                 "tags": [
@@ -2760,24 +2950,19 @@
                                     "data": [
                                         {
                                             "id": 1,
+                                            "name": "Diskon Akhir Tahun",
                                             "code": "DISC20",
-                                            "type": "fixed",
-                                            "value": 20000,
-                                            "min_purchase": 100000,
-                                            "quota": 50,
-                                            "expired_at": "2026-12-31",
-                                            "active": true
+                                            "links": {
+                                                "first": "...",
+                                                "last": "..."
+                                            },
+                                            "meta": {
+                                                "current_page": 1,
+                                                "per_page": 10,
+                                                "total": 1
+                                            }
                                         }
-                                    ],
-                                    "links": {
-                                        "first": "...",
-                                        "last": "..."
-                                    },
-                                    "meta": {
-                                        "current_page": 1,
-                                        "per_page": 10,
-                                        "total": 1
-                                    }
+                                    ]
                                 }
                             }
                         }
@@ -2801,6 +2986,7 @@
                         "application/json": {
                             "schema": {
                                 "required": [
+                                    "name",
                                     "code",
                                     "type",
                                     "value",
@@ -2808,6 +2994,9 @@
                                     "expired_at"
                                 ],
                                 "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
                                     "code": {
                                         "type": "string"
                                     },
@@ -2851,6 +3040,7 @@
                                 "example": {
                                     "data": {
                                         "id": 1,
+                                        "name": "Diskon Akhir Tahun",
                                         "code": "DISC20",
                                         "type": "fixed",
                                         "value": 20000,
@@ -2897,6 +3087,7 @@
                                 "example": {
                                     "data": {
                                         "id": 1,
+                                        "name": "Diskon Akhir Tahun",
                                         "code": "DISC20",
                                         "type": "fixed",
                                         "value": 20000,
@@ -2938,6 +3129,9 @@
                         "application/json": {
                             "schema": {
                                 "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
                                     "code": {
                                         "type": "string"
                                     },
@@ -2979,6 +3173,7 @@
                                 "example": {
                                     "data": {
                                         "id": 1,
+                                        "name": "Diskon Akhir Tahun",
                                         "code": "DISC20",
                                         "type": "fixed",
                                         "value": 20000,
@@ -3097,6 +3292,56 @@
         }
     },
     "components": {
+        "schemas": {
+            "StockAdjustment": {
+                "title": "Stock Adjustment",
+                "description": "Stock adjustment model schema",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "stock_supply_item_id": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "damaged",
+                        "enum": [
+                            "damaged",
+                            "expired",
+                            "lost",
+                            "other"
+                        ]
+                    },
+                    "reason": {
+                        "type": "string",
+                        "example": "Kemasan rusak",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-09-08T09:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-09-08T09:00:00Z"
+                    }
+                },
+                "type": "object"
+            }
+        },
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",
@@ -3122,6 +3367,10 @@
         {
             "name": "Product",
             "description": "Product"
+        },
+        {
+            "name": "Stock Adjustment",
+            "description": "Stock Adjustment"
         },
         {
             "name": "Stock Supply",

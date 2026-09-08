@@ -88,5 +88,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/supplier-returns', [\App\Http\Controllers\SupplierReturnController::class, 'index']);
         Route::post('/supplier-returns', [\App\Http\Controllers\SupplierReturnController::class, 'store']);
         Route::get('/supplier-returns/{supplierReturn}', [\App\Http\Controllers\SupplierReturnController::class, 'show']);
+
+        // Stock Adjustments
+        Route::apiResource('stock-adjustments', \App\Http\Controllers\StockAdjustmentController::class)->only(['index', 'store', 'show']);
     });
 });
+
