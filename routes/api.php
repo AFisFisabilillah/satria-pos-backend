@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockSupplyController;
 use App\Http\Controllers\StockSupplyItemController;
@@ -91,6 +92,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Stock Adjustments
         Route::apiResource('stock-adjustments', \App\Http\Controllers\StockAdjustmentController::class)->only(['index', 'store', 'show']);
+        Route::get("/dashboard", [DashboardController::class, 'index']);
     });
 });
 
