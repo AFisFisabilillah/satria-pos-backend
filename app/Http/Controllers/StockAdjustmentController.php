@@ -56,7 +56,7 @@ class StockAdjustmentController extends Controller
         $size= request()->query("size",10);
         $query = StockAdjustment::query();
         $query
-            ->when($type, function ($query, $type) {
+            ->when($type, function ($query) use($type) {
             $query->where('type', $type);})
             ->when($search, function ($query, $search) {
                 $query->where('reason', 'LIKE', "%{$search}%")
@@ -64,13 +64,13 @@ class StockAdjustmentController extends Controller
                         $query->where('name', "LIKE", "%{$search}%");
                     });
             })
-            ->when($startDate, function ($query, $startDate) {
+            ->when($startDate, function ($query) use( $startDate) {
                 $query->whereDate('created_at', '>=', $startDate);
             })
-            ->when($endDate, function ($query, $endDate) {
+            ->when($endDate, function ($query) use($endDate) {
                 $query->whereDate('created_at', '<=', $endDate);
             });
-        $adjustments = StockAdjustment::with(['stockSupplyItem', 'user'])->latest()->paginate($size);
+        $adjustments = $query->with(['stockSupplyItem', 'user'])->latest()->paginate($size);
 
         return StockAdjustmentResource::collection($adjustments);
     }
