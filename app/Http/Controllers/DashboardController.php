@@ -152,6 +152,60 @@ class DashboardController extends Controller
             ")
             ->first();
 
+        // 8. Chart Transactions Data
+        $chartTransactionsQuery = DB::table("transactions");
+        $applyDateFilter($chartTransactionsQuery, 'created_at');
+
+        switch ($period) {
+            case 'today':
+                $chartTransactions = $chartTransactionsQuery
+                    ->select(
+                        DB::raw("DATE_FORMAT(created_at, '%Y-%m-%d %H:00:00') as label"),
+                        DB::raw("SUM(total_price) as total_price"),
+                        DB::raw("COUNT(id) as total_transactions")
+                    )
+                    ->groupBy('label')
+                    ->orderBy('label')
+                    ->get();
+                break;
+            case 'week':
+            case 'month':
+                $chartTransactions = $chartTransactionsQuery
+                    ->select(
+                        DB::raw("DATE(created_at) as label"),
+                        DB::raw("SUM(total_price) as total_price"),
+                        DB::raw("COUNT(id) as total_transactions")
+                    )
+                    ->groupBy('label')
+                    ->orderBy('label')
+                    ->get();
+                break;
+            case 'year':
+                $chartTransactions = $chartTransactionsQuery
+                    ->select(
+                        DB::raw("DATE_FORMAT(created_at, '%Y-%m') as label"),
+                        DB::raw("SUM(total_price) as total_price"),
+                        DB::raw("COUNT(id) as total_transactions")
+                    )
+                    ->groupBy('label')
+                    ->orderBy('label')
+                    ->get();
+                break;
+            case 'custom':
+            case 'all':
+            default:
+                $chartTransactions = $chartTransactionsQuery
+                    ->select(
+                        DB::raw("DATE(created_at) as label"),
+                        DB::raw("SUM(total_price) as total_price"),
+                        DB::raw("COUNT(id) as total_transactions")
+                    )
+                    ->groupBy('label')
+                    ->orderBy('label')
+                    ->get();
+                break;
+        }
+
        return  response()->json([
             "filter" => [
                 "period" => $period,
@@ -178,6 +232,7 @@ class DashboardController extends Controller
             "adjustment_loss" => $adjustmentLoss,
             "voucher_stats" => $voucherStats,
             "voucher_usage_period" => $voucherUsagePeriod,
+            "chart_transactions" => $chartTransactions,
         ]);
     }
 }
